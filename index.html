@@ -285,16 +285,19 @@ const EVS={
 
 /* Customers */
 const SKINS=['#f6d2b0','#eec39a','#e2ad83','#c98c62','#f9dcc4'];
-const HAIRC=['#2a1a14','#3a2418','#5a3420','#1a1a22','#7a4a2a','#a8603a'];
+const HAIRC=['#2a1a24','#3a2418','#5a3420','#22223a','#7a4a2a','#a8603a','#6a2a3a','#c08a4a'];
+const EYEC=['#5a3a2a','#3a2a4a','#8a4a2a','#2a4a6a','#6a3a5a','#3a5a3a'];
+const WEARS=['shirt','hoodie','blazer','cardigan','shirt'];
 const TOPS=['#3a6ea5','#c0504d','#5b8a4a','#8a5aa8','#d08a2a','#2f8a8a','#a84a6a','#4a4a6a'];
 const REG=[
-  {id:'doudou',name:'豆豆',kid:1,skin:'#f9dcc4',hair:'#2a1a14',hs:'short',top:'#f2c230',acc:'cap',accC:'#d7372b',pat:.75,fav:['cm'],day:1,lines:['我要草莓㗎！','媽咪話可以食一串！','快啲啦～']},
-  {id:'chan',name:'陳婆婆',skin:'#eec39a',hair:'#c9c4bc',hs:'bun',top:'#7a4a8a',acc:'glasses',pat:1.45,fav:['sz','zm'],day:1,lines:['後生仔，唔該一串山楂。','慢慢嚟，唔使急。','以前北京食開呢隻味。']},
-  {id:'kathy',name:'Kathy',skin:'#f6d2b0',hair:'#1a1a22',hs:'bob',top:'#2a3a6a',pat:.85,fav:['cm','smt'],more:1,day:2,lines:['收工獎勵吓自己！','快啲呀，趕住搭車。','同事都要，順手買埋。']},
-  {id:'kit',name:'阿傑',skin:'#e2ad83',hair:'#1a1a22',hs:'spiky',top:'#f4f4f0',pat:.9,fav:['smt','tz'],day:3,lines:['打完波好口渴！','老闆，有冇凍飲？','聽講你哋好正喎。']},
-  {id:'yuki',name:'Yuki',skin:'#f9dcc4',hair:'#7a4a2a',hs:'long',top:'#e89aa8',acc:'beret',accC:'#c0504d',pat:1.1,fav:['jz','mix','qy'],day:4,lines:['わぁ、きれい！','Can I have this one?','好靚呀！影張相先。']},
-  {id:'ming',name:'肥仔明',skin:'#e2ad83',hair:'#2a1a14',hs:'short',top:'#d08a2a',big:1,pat:1.0,fav:['mix','sz'],more:1,day:5,lines:['老闆，有咩推介？','全部都想試吓！','今晚唔減肥住。']},
+  {id:'doudou',wear:'hoodie',eye:'#5a3a2a',name:'豆豆',kid:1,skin:'#f9dcc4',hair:'#2a1a14',hs:'short',top:'#f2c230',acc:'cap',accC:'#d7372b',pat:.75,fav:['cm'],day:1,lines:['我要草莓㗎！','媽咪話可以食一串！','快啲啦～']},
+  {id:'chan',wear:'cardigan',eye:'#5a3a2a',name:'陳婆婆',skin:'#eec39a',hair:'#c9c4bc',hs:'bun',top:'#7a4a8a',acc:'glasses',pat:1.45,fav:['sz','zm'],day:1,lines:['後生仔，唔該一串山楂。','慢慢嚟，唔使急。','以前北京食開呢隻味。']},
+  {id:'kathy',wear:'blazer',eye:'#3a2a4a',name:'Kathy',skin:'#f6d2b0',hair:'#1a1a22',hs:'bob',top:'#2a3a6a',pat:.85,fav:['cm','smt'],more:1,day:2,lines:['收工獎勵吓自己！','快啲呀，趕住搭車。','同事都要，順手買埋。']},
+  {id:'kit',wear:'shirt',eye:'#2a1a14',name:'阿傑',skin:'#e2ad83',hair:'#1a1a22',hs:'spiky',top:'#f4f4f0',pat:.9,fav:['smt','tz'],day:3,lines:['打完波好口渴！','老闆，有冇凍飲？','聽講你哋好正喎。']},
+  {id:'yuki',wear:'sailor',eye:'#8a4a2a',name:'Yuki',skin:'#f9dcc4',hair:'#7a4a2a',hs:'long',top:'#e89aa8',acc:'beret',accC:'#c0504d',pat:1.1,fav:['jz','mix','qy'],day:4,lines:['わぁ、きれい！','Can I have this one?','好靚呀！影張相先。']},
+  {id:'ming',wear:'hoodie',eye:'#5a3a2a',name:'肥仔明',skin:'#e2ad83',hair:'#2a1a14',hs:'short',top:'#d08a2a',big:1,pat:1.0,fav:['mix','sz'],more:1,day:5,lines:['老闆，有咩推介？','全部都想試吓！','今晚唔減肥住。']},
 ];
+const OWNER={skin:'#f9dcc4',hair:'#4a2430',hs:'pony',top:'#c81e2c',eye:'#8a3a2a',wear:'apron',acc:'band'};
 const MOBL=['唔該，要呢個！','嘩，好香呀。','行開行埋，買串試吓。','一串唔夠喉。','老闆，唔該！','好耐冇食過喇。'];
 const HS=['short','bob','pony','long','spiky'];
 
@@ -385,34 +388,68 @@ function orderIcon(k){
   return s+'</svg>';
 }
 
-function figure(L,mood){
-  const sk=L.skin,hc=L.hair,tp=L.top;
-  let back='',hair='',acc='';
-  if(L.hs==='long')back=`<path d="M34 90C28 140 40 176 50 182L110 182C120 176 132 140 126 90Z" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
-  if(L.hs==='pony')back=`<ellipse cx="128" cy="96" rx="16" ry="26" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
-  if(L.hs==='bun')back=`<circle cx="80" cy="38" r="18" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
-  const top=`M34 92C30 50 58 40 80 40C104 40 132 50 126 92C118 72 100 64 80 66C62 64 44 72 34 92Z`;
-  if(L.hs==='spiky')hair=`<path d="M34 92L30 56L46 62L50 36L64 52L78 30L88 50L104 34L108 56L126 50L126 92C118 72 100 66 80 68C60 66 44 72 34 92Z" fill="${hc}" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>`;
-  else if(L.hs==='bob')hair=`<path d="M30 124C24 60 52 40 80 40C108 40 136 60 130 124L118 124C120 96 112 74 80 70C48 74 40 96 42 124Z" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
-  else hair=`<path d="${top}" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
-  if(L.acc==='cap')acc=`<path d="M34 74C36 44 60 34 80 34C102 34 124 44 126 74Z" fill="${L.accC}" stroke="${O}" stroke-width="4"/><path d="M90 72Q130 66 146 78Q120 82 92 80Z" fill="${L.accC}" stroke="${O}" stroke-width="4"/>`;
-  if(L.acc==='beret')acc=`<ellipse cx="74" cy="48" rx="46" ry="16" fill="${L.accC}" stroke="${O}" stroke-width="4" transform="rotate(-8 74 48)"/><circle cx="72" cy="31" r="4" fill="${O}"/>`;
-  if(L.acc==='glasses')acc=`<g fill="none" stroke="#6a4a2a" stroke-width="3"><circle cx="63" cy="96" r="11"/><circle cx="97" cy="96" r="11"/><path d="M74 96h12"/></g>`;
-  let eyes,brows='',mouth;
-  if(mood==='happy'){eyes=`<path d="M56 98q7-9 14 0M90 98q7-9 14 0" stroke="${O}" stroke-width="4" fill="none" stroke-linecap="round"/>`;mouth=`<path d="M68 114q12 14 24 0z" fill="#a8342a" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>`}
-  else if(mood==='worry'){eyes=`<circle cx="63" cy="98" r="4.5" fill="${O}"/><circle cx="97" cy="98" r="4.5" fill="${O}"/>`;brows=`<path d="M54 84l16 4M106 84l-16 4" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>`;mouth=`<path d="M70 120q5-4 10 0t10 0" stroke="${O}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`}
-  else if(mood==='angry'){eyes=`<circle cx="63" cy="99" r="4.5" fill="${O}"/><circle cx="97" cy="99" r="4.5" fill="${O}"/>`;brows=`<path d="M54 86l16 6M106 86l-16 6" stroke="${O}" stroke-width="4.5" stroke-linecap="round"/>`;mouth=`<path d="M68 122q12-10 24 0" stroke="${O}" stroke-width="4" fill="none" stroke-linecap="round"/>`}
-  else{eyes=`<circle cx="63" cy="98" r="5" fill="${O}"/><circle cx="97" cy="98" r="5" fill="${O}"/><circle cx="65" cy="96" r="1.6" fill="#fff"/><circle cx="99" cy="96" r="1.6" fill="#fff"/>`;mouth=`<path d="M72 116q8 6 16 0" stroke="${O}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`}
-  const blush=mood==='angry'?'#ff5a4a':'#ff9a8a';
-  const bodyW=L.big?1.2:1;
-  const body=`<g transform="translate(80 0) scale(${bodyW} 1) translate(-80 0)"><path d="M14 222C16 160 46 140 80 140C114 140 144 160 146 222Z" fill="${tp}" stroke="${O}" stroke-width="4"/><path d="M64 140L80 162L96 140" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="4"/></g>`;
-  const head=`<rect x="68" y="126" width="24" height="20" fill="${sk}" stroke="${O}" stroke-width="4"/><circle cx="80" cy="92" r="${L.big?50:46}" fill="${sk}" stroke="${O}" stroke-width="4"/>`;
-  const inner=`${back}${body}${head}${hair}<ellipse cx="54" cy="112" rx="8" ry="5" fill="${blush}" opacity=".55"/><ellipse cx="106" cy="112" rx="8" ry="5" fill="${blush}" opacity=".55"/>${eyes}${brows}${mouth}${acc}${mood==='angry'?`<path d="M122 54l8-8M128 62l10-2M118 46l2-10" stroke="#ff5a4a" stroke-width="4" stroke-linecap="round"/>`:''}`;
-  const g=L.kid?`<g transform="translate(14 40) scale(.82)">${inner}</g>`:inner;
-  return `<svg viewBox="0 0 160 222" width="160" height="222" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
+const OL='#3a2230';
+function lighten(h,a){const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=c=>Math.round(c+(255-c)*a);return '#'+[m(r),m(g),m(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function figureInner(L,mood){
+  const sk=L.skin,hc=L.hair,tp=L.top,ec=L.eye||'#5a3a2a',sw=2.6,st=`stroke="${OL}" stroke-width="${sw}" stroke-linejoin="round"`;
+  const shade='rgba(140,50,70,.2)',hl=lighten(hc,.35),gid='ir'+ec.slice(1);
+  let back='',front='',side='',acc='',over='';
+  // back hair
+  if(L.hs==='long')back=`<path d="M30 82C22 132 28 180 42 200L118 200C132 180 138 132 130 82C126 50 104 28 80 28C56 28 34 50 30 82Z" fill="${hc}" ${st}/>`;
+  else if(L.hs==='bob')back=`<path d="M30 84C24 114 28 134 36 144L124 144C132 134 136 114 130 84C126 50 104 28 80 28C56 28 34 50 30 84Z" fill="${hc}" ${st}/>`;
+  else if(L.hs==='pony')back=`<path d="M116 52C150 56 156 112 140 160C136 132 128 108 114 90Z" fill="${hc}" ${st}/><path d="M122 54l10-6 4 10z" fill="#d7372b" ${st}/><path d="M33 86C29 54 54 28 80 28C106 28 131 54 127 86Z" fill="${hc}" ${st}/>`;
+  else if(L.hs==='bun')back=`<circle cx="80" cy="28" r="17" fill="${hc}" ${st}/><path d="M33 88C29 56 54 32 80 32C106 32 131 56 127 88Z" fill="${hc}" ${st}/>`;
+  else back=`<path d="M33 90C29 54 54 28 80 28C106 28 131 54 127 90Z" fill="${hc}" ${st}/>`;
+  // clothes
+  const wear=L.wear||'shirt';let col='';
+  if(wear==='shirt')col=`<path d="M62 152L80 174L98 152L92 149L80 162L68 149Z" fill="#fff" ${st}/><path d="M80 174V222" stroke="rgba(0,0,0,.18)" stroke-width="2"/>`;
+  if(wear==='blazer')col=`<path d="M66 151L80 196L94 151Z" fill="#fff" ${st}/><path d="M80 160l-4 6 4 26 4-26z" fill="#c81e2c" stroke="${OL}" stroke-width="1.6"/><path d="M60 153L80 200L64 222M100 153L80 200L96 222" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2.4"/>`;
+  if(wear==='sailor')col=`<path d="M46 158L80 186L114 158L124 174L80 204L36 174Z" fill="#26346a" ${st}/><path d="M44 166L80 194L116 166" stroke="#fff" stroke-width="2.4" fill="none"/><path d="M68 186L80 206L92 186L80 194Z" fill="#d7372b" ${st}/>`;
+  if(wear==='hoodie')col=`<path d="M52 158Q80 182 108 158Q104 144 80 146Q56 144 52 158Z" fill="rgba(0,0,0,.18)" ${st}/><path d="M72 170v22M88 170v22" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="72" cy="193" r="2.4" fill="#fff"/><circle cx="88" cy="193" r="2.4" fill="#fff"/>`;
+  if(wear==='cardigan')col=`<path d="M64 151L80 182L96 151" fill="#f4ead8" ${st}/><path d="M80 182V222" stroke="${OL}" stroke-width="2"/>${[192,204,216].map(y=>`<circle cx="85" cy="${y}" r="2.4" fill="#f4e2b8" stroke="${OL}" stroke-width="1"/>`).join('')}`;
+  if(wear==='apron')col=`<path d="M62 152L80 172L98 152L92 149L80 162L68 149Z" fill="#fff" ${st}/><path d="M56 222V176Q80 168 104 176V222Z" fill="#fbf6ee" ${st}/><path d="M60 176L66 150M100 176L94 150" stroke="#fbf6ee" stroke-width="5"/><circle cx="80" cy="198" r="11" fill="none" stroke="#c81e2c" stroke-width="2.4"/><text x="80" y="203" text-anchor="middle" font-size="13" font-weight="700" fill="#c81e2c" font-family="LXGW WenKai TC,serif">糖</text>`;
+  const bw=L.big?1.2:1;
+  const body=`<g transform="translate(80 0) scale(${bw} 1) translate(-80 0)"><path d="M20 222C20 172 44 152 80 149C116 152 140 172 140 222Z" fill="${tp}" ${st}/><path d="M110 158C126 168 136 190 138 222L116 222C116 196 114 176 110 158Z" fill="rgba(0,0,0,.16)"/>${col}</g>`;
+  const neck=`<path d="M69 124h22v26q-11 6-22 0z" fill="${sk}" ${st}/><path d="M69 128q11 10 22 0v-4H69z" fill="${shade}"/>`;
+  const faceP=`<ellipse cx="38" cy="98" rx="5" ry="8" fill="${sk}" ${st}/><ellipse cx="122" cy="98" rx="5" ry="8" fill="${sk}" ${st}/><path d="M38 84C38 54 56 40 80 40C104 40 122 54 122 84C122 108 107 127 80 135C53 127 38 108 38 84Z" fill="${sk}" ${st}/><path d="M39 78C52 92 108 92 121 78V66H39Z" fill="${shade}"/>`;
+  // eyes
+  const eye=(cx,f)=>{const cy=99;return `<ellipse cx="${cx}" cy="${cy}" rx="10.5" ry="13" fill="#fff" stroke="${OL}" stroke-width="1.2"/><ellipse cx="${cx+f*.6}" cy="${cy+1}" rx="8.4" ry="11.4" fill="url(#${gid})"/><ellipse cx="${cx+f*.6}" cy="${cy+2}" rx="3.8" ry="5.8" fill="#1a0c14"/><circle cx="${cx-3}" cy="${cy-4.5}" r="3.4" fill="#fff"/><circle cx="${cx+3.4}" cy="${cy+5}" r="1.6" fill="#fff" opacity=".9"/><path d="M${cx-12} ${cy-8}Q${cx} ${cy-17} ${cx+12} ${cy-8}" stroke="${OL}" stroke-width="3.8" fill="none" stroke-linecap="round"/><path d="M${cx+f*11} ${cy-9}l${f*5} -4" stroke="${OL}" stroke-width="2.6" stroke-linecap="round"/>`};
+  let eyes,brows,mouth,fx='';
+  const grad=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lighten(ec,-0)}"/><stop offset=".45" stop-color="${ec}"/><stop offset="1" stop-color="${lighten(ec,.55)}"/></linearGradient></defs>`;
+  if(mood==='happy'){
+    eyes=`<path d="M50 102Q62 88 74 102M86 102Q98 88 110 102" stroke="${OL}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    brows=`<path d="M50 80q11-6 22-2M88 78q11-4 22 2" stroke="${OL}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+    mouth=`<path d="M70 114q10 16 20 0z" fill="#b8304a" ${st}/><path d="M74 121q6 5 12 0q-6-4-12 0z" fill="#ff8a9a"/>`;
+  }else{
+    eyes=eye(62,-1)+eye(98,1);
+    if(mood==='worry'){brows=`<path d="M50 82L72 75M110 82L88 75" stroke="${OL}" stroke-width="2.6" stroke-linecap="round"/>`;mouth=`<path d="M72 120q4-4 8 0t8 0" stroke="${OL}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;fx=`<path d="M124 64q7 11 0 16q-7-5 0-16z" fill="#a8dcff" stroke="#3a6a9a" stroke-width="1.6"/>`}
+    else if(mood==='angry'){
+      eyes+=`<path d="M49 84L75 84L75 95L49 89Z" fill="${sk}"/><path d="M49 89L75 95" stroke="${OL}" stroke-width="3.8" stroke-linecap="round"/><path d="M85 84L111 84L111 89L85 95Z" fill="${sk}"/><path d="M85 95L111 89" stroke="${OL}" stroke-width="3.8" stroke-linecap="round"/>`;
+      brows=`<path d="M50 76L74 84M110 76L86 84" stroke="${OL}" stroke-width="3.4" stroke-linecap="round"/>`;
+      mouth=`<path d="M70 124q10-10 20 0z" fill="#b8304a" ${st}/>`;
+      fx=`<g transform="translate(116 52)" stroke="#e8303a" stroke-width="3.2" fill="none" stroke-linecap="round"><path d="M-8-2q6 0 6-6M2-8q0 6 6 6M8 2q-6 0-6 6M-2 8q0-6-6-6"/></g>`;
+    }else{brows=`<path d="M50 80q11-6 22-2M88 78q11-4 22 2" stroke="${OL}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;mouth=`<path d="M74 117q6 5 12 0" stroke="${OL}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`}
+  }
+  const bl=mood==='angry'?.7:.45;
+  const blush=`<ellipse cx="52" cy="114" rx="8" ry="4" fill="#ff7a90" opacity="${bl}"/><ellipse cx="108" cy="114" rx="8" ry="4" fill="#ff7a90" opacity="${bl}"/><path d="M47 116l3-4M52 116l3-4M57 116l3-4M103 116l3-4M108 116l3-4M113 116l3-4" stroke="#e8506a" stroke-width="1.3" opacity=".7" stroke-linecap="round"/><path d="M80 107l-1.6 3.2h3.2" stroke="${OL}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  // front hair
+  if(L.hs==='spiky')front=`<path d="M34 92L24 60L40 62L34 36L56 46L60 20L76 38L88 16L96 38L114 24L112 48L134 46L124 64L132 78L126 92L118 82L110 94L102 74L92 88L82 70L72 88L62 72L54 90L46 78L40 88Z" fill="${hc}" ${st}/>`;
+  else if(L.hs==='short')front=`<path d="M34 92C28 48 56 28 80 28C104 28 132 48 126 92L120 80L112 90L104 74L94 86L84 70L74 86L64 72L56 88L46 76L40 86Z" fill="${hc}" ${st}/>`;
+  else if(L.hs==='bun')front=`<path d="M34 94C28 50 56 34 80 34C104 34 132 50 126 94C122 72 106 60 86 58C72 66 52 74 34 94Z" fill="${hc}" ${st}/>`;
+  else{front=`<path d="M34 92C28 46 56 28 80 28C104 28 132 46 126 92L120 84L114 98L106 76L98 94L88 72L80 92L70 72L60 94L52 76L44 98L40 84Z" fill="${hc}" ${st}/>`;side=`<path d="M37 80Q30 110 40 132L47 106Q43 92 45 82Z" fill="${hc}" ${st}/><path d="M123 80Q130 110 120 132L113 106Q117 92 115 82Z" fill="${hc}" ${st}/>`}
+  const shine=`<path d="M52 54Q62 42 76 39M88 39Q100 42 106 50" stroke="${hl}" stroke-width="4.5" fill="none" stroke-linecap="round" opacity=".85"/><path d="M62 44Q58 64 62 86M98 44Q102 64 98 86" stroke="rgba(0,0,0,.16)" stroke-width="2" fill="none"/>`;
+  if(L.acc==='glasses')acc=`<g fill="rgba(255,255,255,.12)" stroke="#6a4a2a" stroke-width="2.4"><circle cx="62" cy="99" r="14"/><circle cx="98" cy="99" r="14"/><path d="M76 98h8" fill="none"/></g>`;
+  if(L.acc==='cap')over=`<path d="M32 72C34 38 58 24 80 24C104 24 126 38 128 72Z" fill="${L.accC}" ${st}/><path d="M88 68Q134 58 152 76Q122 82 90 78Z" fill="${L.accC}" ${st}/><circle cx="80" cy="25" r="4" fill="${L.accC}" ${st}/>`;
+  if(L.acc==='beret')over=`<ellipse cx="72" cy="42" rx="48" ry="16" fill="${L.accC}" ${st} transform="rotate(-10 72 42)"/><circle cx="70" cy="25" r="4" fill="${OL}"/>`;
+  if(L.acc==='band')over=`<path d="M33 74Q80 50 127 74L127 84Q80 60 33 84Z" fill="#fbf6ee" ${st}/><path d="M122 70l16-10 2 14zM124 80l14 6-10 8z" fill="#c81e2c" ${st}/>`;
+  const head=`${faceP}${blush}${eyes}${brows}${mouth}${acc}${front}${side}${shine}${over}${fx}`;
+  const headG=L.big?`<g transform="translate(80 90) scale(1.1 1.04) translate(-80 -90)">${head}</g>`:head;
+  const inner=`${grad}${back}${body}${neck}${headG}`;
+  return L.kid?`<g transform="translate(14 40) scale(.82)">${inner}</g>`:inner;
 }
+function figure(L,mood){return `<svg viewBox="0 0 160 222" width="160" height="222" xmlns="http://www.w3.org/2000/svg">${figureInner(L,mood)}</svg>`}
 
-function face(L){return figure(L,'happy').replace('viewBox="0 0 160 222" width="160" height="222"','viewBox="26 34 108 108" width="44" height="44"')}
+function face(L){return figure(L,'happy').replace('viewBox="0 0 160 222" width="160" height="222"','viewBox="26 20 108 108" width="44" height="44"')}
 /* Scene background */
 function drawBG(){
   let s=`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140a2a"/><stop offset=".6" stop-color="#3b1a40"/><stop offset="1" stop-color="#5a2438"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".9"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/></radialGradient><filter id="blur"><feGaussianBlur stdDeviation="2.5"/></filter></defs><rect width="1280" height="374" fill="url(#sky)"/>`;
@@ -582,7 +619,7 @@ function spawn(){
   let L,name='',lines=MOBL,reg=null;
   const regs=REG.filter(g=>S.day>=g.day&&!R.regSeen[g.id]&&!R.custs.some(c=>c.reg===g.id&&c.state!=='gone'));
   if(regs.length&&Math.random()<.28){reg=pick(regs);L=reg;name=reg.name;lines=reg.lines;R.regSeen[reg.id]=1}
-  else{L={skin:pick(SKINS),hair:pick(HAIRC),hs:pick(HS),top:pick(TOPS),pat:rnd(.9,1.1)};if(Math.random()<.12){L.acc='glasses'}if(Math.random()<.12){L.kid=1;L.pat=.8;L.acc='cap';L.accC=pick(TOPS)}}
+  else{L={skin:pick(SKINS),hair:pick(HAIRC),hs:pick(HS),top:pick(TOPS),eye:pick(EYEC),wear:pick(WEARS),pat:rnd(.9,1.1)};if(['long','bob','pony'].includes(L.hs)&&Math.random()<.35)L.wear='sailor';if(Math.random()<.12){L.acc='glasses'}if(Math.random()<.12){L.kid=1;L.pat=.8;L.acc='cap';L.accC=pick(TOPS)}}
   const ord=makeOrder(L);
   const patMax=(24+7*ord.length)*(L.pat||1)*(1+decSum('pat'))*(R.evd.pat||1)*Math.max(.72,1-(S.day-1)*.018);
   const c={id:++R.cid,L,name,reg:reg?reg.id:null,line:pick(lines),ord,pat:patMax,patMax,spot,state:'walk',wt:1.05,sayT:2.6,happyT:0,mood:'ok',el:null};
@@ -809,7 +846,7 @@ function showHome(){
   const best=Object.keys(S.stars).length;
   const fresh=S.day===1&&!S.served;
   $('#home').hidden=false;
-  $('#home').innerHTML=`<svg class="hbg" viewBox="0 0 1280 720" width="1280" height="720"><defs><radialGradient id="hg" cx=".72" cy=".45" r=".6"><stop offset="0" stop-color="#5a2438"/><stop offset="1" stop-color="#140a2a"/></radialGradient></defs><rect width="1280" height="720" fill="url(#hg)"/>${Array.from({length:40},(_,i)=>`<circle cx="${(i*137)%1280}" cy="${(i*71)%300}" r="${1+(i%3)}" fill="#ffe9a0" opacity="${.2+(i%5)*.1}"/>`).join('')}<g transform="translate(820 90) rotate(-14)">${[0,1,2].map(i=>`<g transform="translate(${i*110} ${i*30}) scale(3.1)">${skewer(i===1?['cm','cm','cm']:i===2?['cm','tz','jz','sz']:['sz','sz','sz','sz','sz'],'done',i===0).replace(/<\/?svg[^>]*>/g,'')}</g>`).join('')}</g><path d="M0 640Q640 600 1280 640V720H0z" fill="#2a1622"/></svg>
+  $('#home').innerHTML=`<svg class="hbg" viewBox="0 0 1280 720" width="1280" height="720"><defs><radialGradient id="hg" cx=".72" cy=".45" r=".6"><stop offset="0" stop-color="#5a2438"/><stop offset="1" stop-color="#140a2a"/></radialGradient></defs><rect width="1280" height="720" fill="url(#hg)"/>${Array.from({length:40},(_,i)=>`<circle cx="${(i*137)%1280}" cy="${(i*71)%300}" r="${1+(i%3)}" fill="#ffe9a0" opacity="${.2+(i%5)*.1}"/>`).join('')}<circle cx="960" cy="380" r="300" fill="#ff8a4a" opacity=".12"/><circle cx="960" cy="380" r="200" fill="#ffcf6a" opacity=".1"/><g transform="translate(1110 60) rotate(12)">${[0,1].map(i=>`<g transform="translate(${i*70} ${i*20}) scale(1.7)" opacity=".85">${skewer(i?['cm','tz','jz','sz']:['cm','cm','cm'],'done').replace(/<\/?svg[^>]*>/g,'')}</g>`).join('')}</g><g transform="translate(800 196) scale(2.05)">${figureInner(OWNER,'happy')}<g transform="translate(122 70) rotate(14)">${skewer(['sz','sz','sz','sz','sz'],'done',1).replace(/<svg[^>]*>/,'<g transform="scale(.82)">').replace('</svg>','</g>')}</g><ellipse cx="106" cy="204" rx="11" ry="10" fill="#f9dcc4" stroke="#3a2230" stroke-width="2.6"/><path d="M99 200q7-4 14 0" stroke="#3a2230" stroke-width="1.6" fill="none"/></g><path d="M0 650Q640 620 1280 650V720H0z" fill="#2a1622"/><text x="1240" y="700" text-anchor="end" font-size="15" fill="#e9cc8e" font-family="LXGW WenKai TC,serif">檔主 阿甜</text></svg>
   <div class="logo"><div class="t1">串串甜！</div><div class="t2">冰糖葫蘆夜市小檔</div><div class="t3">喺夜市開檔賣冰糖葫蘆：串水果、沾糖漿、插草靶、送畀街坊。糖衣要啱啱金黃先好拎起，遲一步就焦。每晚賺夠錢攞星，收檔去升級個檔口，仲可以請幫手。</div></div>
   <div class="hbtns"><button class="btn pri" data-act="startDay">${fresh?'開檔做生意':`繼續：第 ${S.day} 天`}</button><button class="btn" data-act="shop" ${fresh?'hidden':''}>攤檔升級</button><button class="btn" data-act="howto">玩法說明</button><button class="btn" data-act="music" id="hMusicBtn">音樂：${S.music?'開':'關'}</button><button class="btn" data-act="reset" ${fresh?'hidden':''}>由頭開始</button></div>
   <div class="hstat">${fresh?'':`銀包 ${money(S.coins)} · 已招呼 ${S.served} 位客人 · 過咗 ${best} 晚`}</div>`;
