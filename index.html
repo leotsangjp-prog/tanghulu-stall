@@ -85,6 +85,9 @@ button:focus-visible,[data-act]:focus-visible{outline:3px solid var(--glaze);out
 .st{position:absolute;top:10px;height:270px;border-radius:12px;cursor:pointer}
 .plate{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);background:var(--wood2);color:var(--bamboo);border:2px solid #000;border-radius:8px;padding:2px 10px;font-size:14px;font-weight:700;white-space:nowrap;z-index:5;font-variant-numeric:tabular-nums}
 .lock{position:absolute;inset:0;background:rgba(15,8,20,.78);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--bamboo);font-weight:700;font-size:15px;z-index:8;text-align:center;border:2px dashed #6a4a40}
+.badge{position:absolute;width:64px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.badge .av{width:44px;height:44px;border-radius:50%;background:var(--paper);border:3px solid var(--glaze);overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.badge b{font-size:11px;color:#fff;background:rgba(0,0,0,.7);border-radius:6px;padding:0 5px;white-space:nowrap}
 .lock small{font-weight:500;opacity:.8;font-size:12px}
 .st.hl,.bin.hl{box-shadow:0 0 0 3px var(--glaze),0 0 18px var(--glaze)}
 
@@ -267,6 +270,12 @@ const DECO=[
   {id:'radio',n:'懷舊收音機',d:'播住粵語老歌，客人耐性 +10%。',cost:400,pat:.10},
   {id:'neon',n:'霓虹燈牌',d:'閃下閃下好吸睛，貼士 +15%，多 10% 客人。',cost:480,tip:.15,crowd:.10},
 ];
+const STAFF=[
+  {id:'sugarer',n:'熬糖姐姐',d:'糖漿一用完，即刻幫你熬過一鍋（糖錢照計）。',cost:250,wage:15,pos:[842,4],look:{skin:'#f6d2b0',hair:'#3a2418',hs:'pony',top:'#e89aa8'}},
+  {id:'keeper',n:'睇鍋阿叔',d:'糖衣一掛好就幫你夾上草靶，唔會再焦。草靶要有空位先夾得。',cost:400,wage:30,pos:[416,6],look:{skin:'#e2ad83',hair:'#8a8a8a',hs:'short',top:'#2f8a8a',acc:'glasses'}},
+  {id:'drinker',n:'酸梅湯哥哥',d:'有客人叫酸梅湯，就自動幫你倒定（杯錢照計）。',cost:300,wage:20,pos:[84,4],vis:()=>S.day>=3,look:{skin:'#eec39a',hair:'#1a1a22',hs:'spiky',top:'#5b8a4a'}},
+  {id:'skewerer',n:'串籤妹妹',d:'用第二塊串籤板，跟住客人張單幫你串好、再拎去沾糖。',cost:600,wage:45,pos:[340,4],need:()=>S.up.boards>=2,needT:'先買第二塊串籤板',look:{skin:'#f9dcc4',hair:'#7a4a2a',hs:'bob',top:'#d08a2a'}},
+];
 const EVS={
   rain:{ic:'🌧',n:'落雨天',d:'街上人少咗三成，但客人耐性 +30%。',crowd:.7,pat:1.3},
   fest:{ic:'🎆',n:'夜市嘉年華',d:'人流多五成，貼士 +20%！',crowd:1.5,tip:1.2},
@@ -290,11 +299,12 @@ const MOBL=['唔該，要呢個！','嘩，好香呀。','行開行埋，買串�
 const HS=['short','bob','pony','long','spiky'];
 
 /* ================= Save ================= */
-const DEF={v:1,day:1,coins:200,up:{seats:3,boards:1,pot:2,syrup:8,slow:0,fastmelt:0,rack:4,tapfast:0,taps:1},dec:{},own:{},stars:{},served:0,music:1,help:0};
+const DEF={v:1,day:1,coins:200,staff:{},up:{seats:3,boards:1,pot:2,syrup:8,slow:0,fastmelt:0,rack:4,tapfast:0,taps:1},dec:{},own:{},stars:{},served:0,music:1,help:0};
 const clone=o=>JSON.parse(JSON.stringify(o));
 function load(){try{const v=JSON.parse(localStorage.getItem('tanghulu-save-v1')||'null');if(v&&v.v===1)return Object.assign(clone(DEF),v,{up:Object.assign({},DEF.up,v.up||{})})}catch(e){}return clone(DEF)}
 let S=load();
 function save(){try{localStorage.setItem('tanghulu-save-v1',JSON.stringify(S))}catch(e){}}
+S.staff=S.staff||{};
 try{window.claude?.hot?.snapshot?.(()=>({S}))}catch(e){}
 try{const hd=window.claude?.hot?.data;if(hd&&hd.S&&hd.S.v===1)S=hd.S}catch(e){}
 
@@ -402,6 +412,7 @@ function figure(L,mood){
   return `<svg viewBox="0 0 160 222" width="160" height="222" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
 }
 
+function face(L){return figure(L,'happy').replace('viewBox="0 0 160 222" width="160" height="222"','viewBox="26 34 108 108" width="44" height="44"')}
 /* Scene background */
 function drawBG(){
   let s=`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140a2a"/><stop offset=".6" stop-color="#3b1a40"/><stop offset="1" stop-color="#5a2438"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".9"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/></radialGradient><filter id="blur"><feGaussianBlur stdDeviation="2.5"/></filter></defs><rect width="1280" height="374" fill="url(#sky)"/>`;
@@ -444,7 +455,7 @@ function newRun(){
   R={t:0,rev:0,cost:0,tips:0,served:0,angry:0,custs:[],cid:0,boards:Array.from({length:S.up.boards},()=>({st:0,f:[]})),active:0,
      pot:Array.from({length:S.up.pot},()=>null),syrup:S.up.syrup,melt:0,rack:Array.from({length:S.up.rack},()=>null),
      taps:Array.from({length:S.up.taps},()=>({f:0,on:0,ready:0})),sel:null,spawnT:2.5,closing:false,ended:false,ev,evd:ev?EVS[ev]:{},tourDone:false,snap:clone(S),
-     regSeen:{},starsShown:0};
+     regSeen:{},starsShown:0,h:{sk:0,dr:0},wage:0,noStaff:0};
 }
 const profit=()=>R?R.rev-R.cost:0;
 
@@ -463,6 +474,7 @@ function buildKitchen(){
   h+=`<div class="st side b2" data-act="trash" id="trashSt" style="left:802px"><svg width="110" height="130" viewBox="0 0 110 130"><rect x="26" y="20" width="58" height="10" rx="4" fill="#6a7a7a" stroke="${O}" stroke-width="3"/><rect x="46" y="12" width="18" height="8" rx="3" fill="#6a7a7a" stroke="${O}" stroke-width="3"/><path d="M30 32h50l-6 74H36z" fill="#8a9a9a" stroke="${O}" stroke-width="3"/><path d="M45 42v54M55 42v54M65 42v54" stroke="#5a6a6a" stroke-width="3"/></svg><div class="plate">垃圾桶</div></div>`;
   // bins
   h+=`<div class="bins">${['sz','cm','tz','jz','qy','ses'].map(b=>`<div class="bin" data-act="${b==='ses'?'sesame':'fruit'}" data-k="${b}" id="bin_${b}"></div>`).join('')}</div>`;
+  h+=`<div id="staffB" style="position:absolute;inset:0;pointer-events:none;z-index:9"></div>`;
   k.innerHTML=h;
   ['sz','cm','tz','jz','qy'].forEach(f=>{
     const r=FR[f].r*1.25;let s=`<svg viewBox="0 0 110 130"><path d="M6 64h98v60H6z" fill="#8a4a22" stroke="#2a1206" stroke-width="2"/>`;
@@ -525,6 +537,7 @@ function renderKitchen(){
   $('#potMsg').textContent=melting?'熬糖中…':R.syrup<=0?'冇糖漿！點白糖':'';
   setH($('#potPlate'),'pp',`糖鍋 · 糖漿 ${R.syrup}/${S.up.syrup}`);
   const fl=$('#flame');setH(fl,'fl',`<path d="M160 236q10-24 16-4q8-26 14 0q8-22 14 4q8-18 12 0z" fill="${S.up.slow?'#5aa8ff':'#ff8a2a'}" opacity=".9"/>`);
+  setH($('#staffB'),'staff',R.noStaff?'':STAFF.filter(x=>S.staff[x.id]&&(!x.need||x.need())).map(x=>`<div class="badge" style="left:${x.pos[0]}px;top:${x.pos[1]}px"><div class="av">${face(x.look)}</div><b>${x.n}</b></div>`).join(''));
   // bins locks
   ['sz','cm','tz','jz','qy'].forEach(f=>{const l=$('#bin_'+f+' .lock');const o=fruitOpen(f);l.hidden=o;if(!o)setH(l,'lk'+f,FR[f].buy?`${FR[f].n}<small>商店解鎖</small>`:`${FR[f].n}<small>第 ${FR[f].day} 天開放</small>`)});
   const sl=$('#bin_ses .lock');sl.hidden=sesOpen();if(!sesOpen())setH(sl,'lkses','芝麻<small>第 5 天開放</small>');
@@ -603,15 +616,17 @@ function elPos(el){const r=el.getBoundingClientRect(),s=stage.getBoundingClientR
 /* ================= Actions ================= */
 function spend(n){if(S.coins<n){toast('銀包唔夠錢！');sfx('bad');return false}S.coins-=n;R.cost+=n;return true}
 function activeBoard(){return R.boards[R.active]}
+const helperBoard=()=>R&&!R.noStaff&&S.staff.skewerer&&R.boards.length>=2?1:-1;
+const playerBoard=i=>i!==helperBoard();
 const ACT={
   fruit(el){
     const k=el.dataset.k;if(!fruitOpen(k)){toast(FR[k].buy?'去商店買咗先':'仲未開放');sfx('bad');return}
     let b=activeBoard();
-    if(b.st&&b.f.length>=5){const j=R.boards.findIndex(x=>!x.st||x.f.length<5);if(j<0){toast('串籤板滿晒，快啲拎去沾糖');sfx('bad');return}R.active=j;b=R.boards[j]}
+    if(b.st&&b.f.length>=5){const j=R.boards.findIndex((x,ix)=>playerBoard(ix)&&(!x.st||x.f.length<5));if(j<0){toast('串籤板滿晒，快啲拎去沾糖');sfx('bad');return}R.active=j;b=R.boards[j]}
     if(!b.st){if(!spend(COST.stick+FR[k].c))return;b.st=1}else if(!spend(FR[k].c))return;
     b.f.push(k);sfx('plop');
   },
-  board(el){const i=+el.dataset.i;if(!R.boards[i]){toast('去商店買第二塊串籤板');return}R.active=i;sfx('tap')},
+  board(el){const i=+el.dataset.i;if(!R.boards[i]){toast('去商店買第二塊串籤板');return}if(!playerBoard(i)){toast('串籤妹妹用緊呢塊板');return}R.active=i;sfx('tap')},
   pot(){dip(-1)},
   slot(el){const i=+el.dataset.i,p=R.pot[i];if(!p){dip(i);return}collect(i)},
   sugar(){
@@ -669,15 +684,18 @@ const ACT={
 function dip(i){
   if(R.melt>0){toast('糖漿仲熬緊');return}
   if(R.syrup<=0){toast('冇糖漿喇！點「白糖」熬一鍋');sfx('bad');return}
-  let bi=R.boards[R.active]&&R.boards[R.active].f.length?R.active:R.boards.findIndex(b=>b.f.length);
+  let bi=R.boards[R.active]&&R.boards[R.active].f.length?R.active:R.boards.findIndex((b,ix)=>playerBoard(ix)&&b.f.length);
   if(bi<0){toast('串籤板上面未有糖葫蘆');return}
   if(i<0||R.pot[i])i=R.pot.findIndex(p=>!p);
   if(i<0){toast('糖鍋冇位喇');sfx('bad');return}
+  dipBoard(bi,i);
+}
+function dipBoard(bi,i){
   const b=R.boards[bi];
   const cook=b.f.reduce((a,k)=>a+FR[k].cook,0)/b.f.length;
   R.pot[i]={f:b.f.slice(),t:0,cook,win:5+(S.up.slow?3:0),burnt:0};
   b.st=0;b.f=[];R.syrup--;sfx('dip');
-  if(R.boards.length>1&&!R.boards[R.active].st){const j=R.boards.findIndex(x=>x.st);if(j>=0)R.active=j}
+  if(R.boards.length>1&&!R.boards[R.active].st){const j=R.boards.findIndex((x,ix)=>playerBoard(ix)&&x.st);if(j>=0)R.active=j}
 }
 function collect(i){
   const p=R.pot[i];
@@ -694,6 +712,28 @@ MENU.odd={n:'自創串',p:0,f:[]};
 const BURNWARN=2;
 
 /* ================= Loop ================= */
+function wantList(){const w=[];R.custs.filter(c=>c.state==='wait').sort((a,b)=>a.pat-b.pat).forEach(c=>c.ord.forEach(o=>!o.done&&w.push(o.k)));return w}
+function pickDeficit(){
+  const base=k=>k==='zm'?'sz':k,sup={};
+  const add=k=>{if(k){k=base(k);sup[k]=(sup[k]||0)+1}};
+  R.rack.forEach(x=>x&&add(x.k));R.pot.forEach(p=>p&&add(RBK[mkey(p.f)]));
+  R.boards.forEach((b,ix)=>{if(ix!==1&&b.st&&b.f.length)add(RBK[mkey(b.f)]||null)});
+  for(const k of wantList()){if(MENU[k].drink)continue;const bk=base(k);if(sup[bk]>0){sup[bk]--;continue}if(MENU[bk].f.every(fruitOpen))return bk}
+  return null;
+}
+function staffTick(dt){
+  const st=S.staff;
+  if(st.sugarer&&R.syrup<=0&&R.melt<=0&&S.coins>=COST.sugar){S.coins-=COST.sugar;R.cost+=COST.sugar;R.melt=S.up.fastmelt?2:4;sfx('sugar')}
+  if(st.keeper)R.pot.forEach((p,i)=>{if(p&&p.t>=p.cook+.6&&p.t<p.cook+p.win&&R.rack.some(x=>!x))collect(i)});
+  if(st.drinker&&smtOpen()){R.h.dr-=dt;if(R.h.dr<=0){R.h.dr=.8;const need=wantList().filter(k=>k==='smt').length,have=R.taps.filter(t=>t.on||t.ready).length;if(need>have){const e=R.taps.findIndex(t=>!t.on&&!t.ready);if(e>=0&&S.coins>=COST.cup){S.coins-=COST.cup;R.cost+=COST.cup;R.taps[e].on=1;R.taps[e].f=0;sfx('pour')}}}}
+  if(helperBoard()===1){
+    const b=R.boards[1];R.h.sk-=dt;if(R.h.sk>0)return;R.h.sk=1.0;
+    if(!b.st){const k=pickDeficit();if(!k)return;b.tgt=k}
+    const f=MENU[b.tgt].f;
+    if(b.f.length<f.length){const fk=f[b.f.length],c=FR[fk].c+(b.st?0:COST.stick);if(S.coins<c)return;S.coins-=c;R.cost+=c;b.st=1;b.f.push(fk);sfx('plop')}
+    else if(R.melt<=0&&R.syrup>0){const i=R.pot.findIndex(p=>!p);if(i>=0)dipBoard(1,i)}
+  }
+}
 function clockH(){return 18+Math.min(1,R.t/DAYLEN)*6}
 function period(h){return h<19?'開檔':h<20.5?'晚市高峰':h<21.5?'散步時段':h<23?'宵夜高峰':'收檔前'}
 function rush(h){return h<19?.85:h<20.5?1.5:h<21.5?.95:h<23?1.4:.75}
@@ -720,6 +760,7 @@ function update(dt){
   if(R.melt>0){R.melt-=dt;if(R.melt<=0){R.melt=0;R.syrup=S.up.syrup;sfx('ding')}}
   const ft=S.up.tapfast?2:4;
   for(const t of R.taps)if(t.on&&!t.ready){t.f+=dt/ft;if(t.f>=1){t.f=1;t.ready=1;sfx('ding')}}
+  if(!R.noStaff)staffTick(dt);
   if(R.t>=DAYLEN+25)R.custs.forEach(c=>c.state!=='gone'&&leave(c,false));
   if(R.t>=DAYLEN&&R.custs.length===0&&!R.ended)endDay();
 }
@@ -769,7 +810,7 @@ function showHome(){
   const fresh=S.day===1&&!S.served;
   $('#home').hidden=false;
   $('#home').innerHTML=`<svg class="hbg" viewBox="0 0 1280 720" width="1280" height="720"><defs><radialGradient id="hg" cx=".72" cy=".45" r=".6"><stop offset="0" stop-color="#5a2438"/><stop offset="1" stop-color="#140a2a"/></radialGradient></defs><rect width="1280" height="720" fill="url(#hg)"/>${Array.from({length:40},(_,i)=>`<circle cx="${(i*137)%1280}" cy="${(i*71)%300}" r="${1+(i%3)}" fill="#ffe9a0" opacity="${.2+(i%5)*.1}"/>`).join('')}<g transform="translate(820 90) rotate(-14)">${[0,1,2].map(i=>`<g transform="translate(${i*110} ${i*30}) scale(3.1)">${skewer(i===1?['cm','cm','cm']:i===2?['cm','tz','jz','sz']:['sz','sz','sz','sz','sz'],'done',i===0).replace(/<\/?svg[^>]*>/g,'')}</g>`).join('')}</g><path d="M0 640Q640 600 1280 640V720H0z" fill="#2a1622"/></svg>
-  <div class="logo"><div class="t1">串串甜！</div><div class="t2">冰糖葫蘆夜市小檔</div><div class="t3">喺夜市開檔賣冰糖葫蘆：串水果、沾糖漿、插草靶、送畀街坊。糖衣要啱啱金黃先好拎起，遲一步就焦。每晚賺夠錢攞星，收檔去升級個檔口。</div></div>
+  <div class="logo"><div class="t1">串串甜！</div><div class="t2">冰糖葫蘆夜市小檔</div><div class="t3">喺夜市開檔賣冰糖葫蘆：串水果、沾糖漿、插草靶、送畀街坊。糖衣要啱啱金黃先好拎起，遲一步就焦。每晚賺夠錢攞星，收檔去升級個檔口，仲可以請幫手。</div></div>
   <div class="hbtns"><button class="btn pri" data-act="startDay">${fresh?'開檔做生意':`繼續：第 ${S.day} 天`}</button><button class="btn" data-act="shop" ${fresh?'hidden':''}>攤檔升級</button><button class="btn" data-act="howto">玩法說明</button><button class="btn" data-act="music" id="hMusicBtn">音樂：${S.music?'開':'關'}</button><button class="btn" data-act="reset" ${fresh?'hidden':''}>由頭開始</button></div>
   <div class="hstat">${fresh?'':`銀包 ${money(S.coins)} · 已招呼 ${S.served} 位客人 · 過咗 ${best} 晚`}</div>`;
 }
@@ -788,8 +829,9 @@ const HOME_ACT={
   howDone(){closeModal();if(MODE==='home'&&$('#modal').dataset.fromStart==='1'){$('#modal').dataset.fromStart='';dayIntro()}else if(MODE==='play'&&PAUSE){ACT.pause()}},
   stab(el){shop(el.dataset.tab,el.dataset.after==='1')},
   buy(el){const id=el.dataset.id,tab=el.dataset.tab,after=el.dataset.after==='1';
-    const all=[...UPS,...NEWITEMS.map(x=>({...x,ok:()=>!S.own[x.id],go:()=>S.own[x.id]=1,done:()=>!!S.own[x.id]})),...DECO.map(x=>({...x,ok:()=>!S.dec[x.id],go:()=>S.dec[x.id]=1,done:()=>!!S.dec[x.id]}))];
+    const all=[...UPS,...NEWITEMS.map(x=>({...x,ok:()=>!S.own[x.id],go:()=>S.own[x.id]=1,done:()=>!!S.own[x.id]})),...DECO.map(x=>({...x,ok:()=>!S.dec[x.id],go:()=>S.dec[x.id]=1,done:()=>!!S.dec[x.id]})),...STAFF.map(x=>({...x,ok:()=>!S.staff[x.id]&&(!x.need||x.need()),go:()=>S.staff[x.id]=1,done:()=>!!S.staff[x.id]}))];
     const u=all.find(x=>x.id===id);if(!u||u.done()||!u.ok()||S.coins<u.cost)return;S.coins-=u.cost;u.go();save();sfx('coin');drawDeco();renderRack();shop(tab,after)},
+  fire(el){delete S.staff[el.dataset.id];save();sfx('trash');shop(el.dataset.tab,el.dataset.after==='1')},
   borrow(){S.coins+=150;save();closeModal();dayIntro()},
 };
 function howto(fromStart){
@@ -811,6 +853,7 @@ function dayIntro(){
   modal(`<h2>第 ${S.day} 晚</h2><p>夜市 18:00 開檔，00:00 收檔，23:35 最後落單。</p>
   ${nw?`<div class="news">${orderIcon(nw[0])}<div><b>新款：${nw[1]}（${money(MENU[nw[0]].p)}）</b><p>${nw[2]}</p></div></div>`:''}
   ${ev?`<div class="ev"><div class="ic">${ev.ic}</div><div><b>${ev.n}</b><p style="margin:2px 0 0">${ev.d}</p></div></div>`:''}
+  ${(()=>{const ws=STAFF.filter(x=>S.staff[x.id]);return ws.length?`<p>今晚有 ${ws.map(x=>x.n).join('、')} 幫手，開檔時扣人工 ${money(ws.reduce((a,x)=>a+x.wage,0))}。</p>`:''})()}
   <h3>今晚目標（淨利）</h3><div class="goals">${g.map((x,i)=>`<div class="goal">${'★'.repeat(i+1)}<span>${money(x)}</span></div>`).join('')}</div>
   <div class="btns"><button class="btn pri" data-act="goDay">開檔！</button><button class="btn" data-act="toShop">攤檔升級</button><button class="btn" data-act="home">返主頁</button></div>`);
   renderKitchen();renderRack();
@@ -821,6 +864,8 @@ function beginDay(){
   // rebuild run containers in case upgrades changed
   R.boards=Array.from({length:S.up.boards},()=>({st:0,f:[]}));R.pot=Array.from({length:S.up.pot},()=>null);R.rack=Array.from({length:S.up.rack},()=>null);R.taps=Array.from({length:S.up.taps},()=>({f:0,on:0,ready:0}));R.syrup=S.up.syrup;
   R.snap=clone(S);sig={};
+  const wage=STAFF.reduce((a,x)=>a+(S.staff[x.id]?x.wage:0),0);R.wage=0;R.noStaff=0;
+  if(wage){if(S.coins>=wage){S.coins-=wage;R.cost+=wage;R.wage=wage}else{R.noStaff=1;setTimeout(()=>toast('銀包唔夠出人工，幫手今晚休息'),1500)}}
   banner('開檔！');sfx('open');ac();musicOn();
 }
 function endDay(){
@@ -831,17 +876,17 @@ function endDay(){
   save();
   setTimeout(()=>{
     modal(`<h2>第 ${d} 晚 收檔</h2><div class="bigstars">${[1,2,3].map(i=>`<span class="${i<=st?'on':''}">★</span>`).join('')}</div>
-    <div class="sum"><span>營業額（連貼士）</span><b>${money(R.rev)}</b><span>其中貼士</span><b>${money(R.tips)}</b><span>材料成本</span><b>-${money(R.cost)}</b><span class="tot">淨利</span><b class="tot">${p<0?'-':''}${money(Math.abs(p))}</b><span>招呼咗</span><b>${R.served} 位</b><span>嬲咗走</span><b>${R.angry} 位</b></div>
+    <div class="sum"><span>營業額（連貼士）</span><b>${money(R.rev)}</b><span>其中貼士</span><b>${money(R.tips)}</b><span>材料成本</span><b>-${money(R.cost-R.wage)}</b>${R.wage?`<span>幫手人工</span><b>-${money(R.wage)}</b>`:''}<span class="tot">淨利</span><b class="tot">${p<0?'-':''}${money(Math.abs(p))}</b><span>招呼咗</span><b>${R.served} 位</b><span>嬲咗走</span><b>${R.angry} 位</b></div>
     <p>${st>0?(st===3?'三粒星！成條街都講緊你檔糖葫蘆。':'做得唔錯，聽晚再努力！'):`差少少先夠一粒星（${money(g[0])}）。今晚會由頭再嚟過。`}</p>
     <div class="btns">${st>0?`<button class="btn pri" data-act="next">去第 ${S.day} 晚</button><button class="btn" data-act="toShop">攤檔升級</button>`:`<button class="btn pri" data-act="retry">再挑戰</button>`}<button class="btn" data-act="home">返主頁</button></div>`);
   },1500);
 }
 function shop(tab='up',after){
-  const all={up:UPS.filter(u=>!u.vis||u.vis()),new:NEWITEMS.map(x=>({...x,ok:()=>!S.own[x.id]&&S.day>=x.day,done:()=>!!S.own[x.id],need:`第 ${x.day} 天開始有得賣`})),dec:DECO.map(x=>({...x,ok:()=>!S.dec[x.id],done:()=>!!S.dec[x.id]}))};
+  const all={up:UPS.filter(u=>!u.vis||u.vis()),new:NEWITEMS.map(x=>({...x,ok:()=>!S.own[x.id]&&S.day>=x.day,done:()=>!!S.own[x.id],need:`第 ${x.day} 天開始有得賣`})),dec:DECO.map(x=>({...x,ok:()=>!S.dec[x.id],done:()=>!!S.dec[x.id]})),staff:STAFF.filter(x=>!x.vis||x.vis()).map(x=>({...x,ok:()=>!S.staff[x.id]&&(!x.need||x.need()),done:()=>!!S.staff[x.id],need:x.needT,staff:1}))};
   const list=all[tab];
   modal(`<div class="wallet">銀包 ${money(S.coins)}</div><h2>攤檔升級</h2>
-  <div class="tabs">${[['up','設備'],['new','新貨'],['dec','裝飾']].map(([k,n])=>`<button class="tab ${k===tab?'on':''}" data-act="stab" data-tab="${k}" data-after="${after?1:0}">${n}</button>`).join('')}</div>
-  <div class="shop">${list.map(u=>{const done=u.done(),ok=u.ok();return `<div class="up ${done?'done':''}"><b>${u.n}</b><p>${u.d}</p><div class="row"><span class="price">${money(u.cost)}</span>${done?'<span>已擁有</span>':ok?`<button class="sbtn" data-act="buy" data-id="${u.id}" data-tab="${tab}" data-after="${after?1:0}" ${S.coins<u.cost?'disabled':''}>購買</button>`:`<span style="font-size:12px">${u.need||''}</span>`}</div></div>`}).join('')}</div>
+  <div class="tabs">${[['up','設備'],['new','新貨'],['staff','幫手'],['dec','裝飾']].map(([k,n])=>`<button class="tab ${k===tab?'on':''}" data-act="stab" data-tab="${k}" data-after="${after?1:0}">${n}</button>`).join('')}</div>
+  <div class="shop">${list.map(u=>{const done=u.done(),ok=u.ok();return `<div class="up ${done&&!u.staff?'done':''}">${u.staff?`<div style="display:flex;gap:8px;align-items:center"><div class="badge" style="position:static;width:auto"><div class="av">${face(u.look)}</div></div><b>${u.n}</b></div>`:`<b>${u.n}</b>`}<p>${u.d}${u.staff?`<br><b style="font-size:13px">每晚人工 ${money(u.wage)}</b>`:''}</p><div class="row"><span class="price">${u.staff?'請佢 ':''}${money(u.cost)}</span>${done&&u.staff?`<button class="sbtn" data-act="fire" data-id="${u.id}" data-tab="${tab}" data-after="${after?1:0}" style="background:#fff">辭退</button>`:done?'<span>已擁有</span>':ok?`<button class="sbtn" data-act="buy" data-id="${u.id}" data-tab="${tab}" data-after="${after?1:0}" ${S.coins<u.cost?'disabled':''}>${u.staff?'請佢':'購買'}</button>`:`<span style="font-size:12px">${u.need||''}</span>`}</div></div>`}).join('')}</div>
   <div class="btns">${MODE==='home'&&R&&!R.ended?`<button class="btn pri" data-act="goDay">開檔！</button>`:''}${MODE==='end'?`<button class="btn pri" data-act="next">去第 ${S.day} 晚</button>`:''}<button class="btn" data-act="${MODE==='home'&&R?'reIntro':'home'}">${MODE==='home'&&R?'返回':'返主頁'}</button></div>`);
 }
 HOME_ACT.reIntro=()=>{R=null;dayIntro()};
