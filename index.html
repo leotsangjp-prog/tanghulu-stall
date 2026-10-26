@@ -1,0 +1,874 @@
+<title>串串甜糖葫蘆</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: fixed 1280×720 stage scaled to fit — night-market street on top (customers + straw rack), stall kitchen below. Single committed night look. */
+:root{
+  --night:#1b1033;      /* night sky / page */
+  --plum:#3b1a40;       /* far street haze */
+  --haw:#c81e2c;        /* hawthorn red, primary accent */
+  --glaze:#ffb547;      /* sugar glaze amber */
+  --bamboo:#e9cc8e;     /* bamboo skewer / straw */
+  --paper:#fff3dc;      /* bubbles, modals */
+  --ink:#2b150e;        /* text on paper */
+  --wood:#4a2516;       /* stall wood */
+  --wood2:#2e160d;
+  --jade:#3aa56a;       /* good / ok */
+  --warn:#e8a21c;
+  --bad:#d7372b;
+  --f-disp:"LXGW WenKai TC","Noto Serif TC","PingFang TC","Microsoft JhengHei",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--night);color:var(--paper);font-family:var(--f-body)}
+[hidden]{display:none!important}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#wrap{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,#2a1640,var(--night) 70%)}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;background:var(--night);border-radius:6px}
+button{font-family:var(--f-body)}
+button:focus-visible,[data-act]:focus-visible{outline:3px solid var(--glaze);outline-offset:2px}
+
+/* HUD */
+#hud{position:absolute;left:0;top:0;width:1280px;height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;background:linear-gradient(#120a22,#1b1033);z-index:20;border-bottom:2px solid #000}
+.pill{height:38px;border-radius:19px;background:#2a1838;border:2px solid #5a3a52;display:flex;align-items:center;padding:0 14px;font-weight:700;font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill.day{background:var(--haw);border-color:#ff7a6a;font-family:var(--f-disp);font-size:20px}
+.pbar{flex:1;position:relative;height:38px;border-radius:19px;background:#2a1838;border:2px solid #5a3a52;overflow:hidden}
+.pbar .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#b8481c,var(--glaze));transition:width .25s}
+.pbar .lbl{position:absolute;left:14px;top:0;line-height:34px;font-weight:700;font-size:16px;text-shadow:0 1px 2px #000;font-variant-numeric:tabular-nums}
+.pbar .star{position:absolute;top:0;line-height:34px;font-size:20px;color:#6a4a62;transform:translateX(-50%);text-shadow:0 1px 1px #000}
+.pbar .star.on{color:#ffe07a}
+.pill small{font-size:13px;opacity:.8;margin-left:6px;font-weight:500}
+.ibtn{width:42px;height:38px;border-radius:19px;background:#2a1838;border:2px solid #5a3a52;color:var(--paper);font-size:16px;font-weight:900;cursor:pointer}
+.ibtn:hover{border-color:var(--glaze)}
+
+/* Scene */
+#scene{position:absolute;left:0;top:56px;width:1280px;height:374px;overflow:hidden}
+#scene>svg.bg{position:absolute;inset:0}
+#awn{position:absolute;left:0;top:0;width:1280px;height:40px;z-index:6;pointer-events:none}
+#custs{position:absolute;inset:0;z-index:3}
+#counter{position:absolute;left:0;top:300px;width:1280px;height:74px;z-index:5;pointer-events:none}
+#deco{position:absolute;inset:0;z-index:2;pointer-events:none}
+#decoF{position:absolute;inset:0;z-index:6;pointer-events:none}
+#rack{position:absolute;left:8px;top:150px;width:270px;height:224px;z-index:7}
+
+.cust{position:absolute;top:44px;width:180px;height:330px;transition:left 1s cubic-bezier(.3,.7,.4,1);cursor:pointer}
+.cust .fig{position:absolute;left:10px;top:84px;width:160px;height:220px;transition:transform .2s}
+.cust.walk .fig{animation:bob .32s infinite alternate ease-in-out}
+@keyframes bob{to{transform:translateY(-6px)}}
+.cust .bub{position:absolute;left:50%;top:0;transform:translateX(-50%);background:var(--paper);color:var(--ink);border-radius:16px;padding:6px 8px 8px;border:3px solid var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.35);display:flex;flex-direction:column;gap:5px;min-width:86px;transition:opacity .3s,transform .3s}
+.cust .bub::after{content:"";position:absolute;left:50%;bottom:-11px;width:16px;height:16px;background:var(--paper);border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:translateX(-50%) rotate(45deg)}
+.cust.walk .bub,.cust.gone .bub{opacity:0;transform:translateX(-50%) translateY(8px)}
+.ord{display:flex;gap:4px;justify-content:center}
+.oi{width:60px;display:flex;flex-direction:column;align-items:center;position:relative}
+.oi svg{height:56px;width:auto}
+.oi b{font-size:12px;line-height:1.1;font-weight:700;white-space:nowrap}
+.oi.done{opacity:.35}
+.oi.done::after{content:"✓";position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:30px;font-weight:900;color:var(--jade)}
+.patb{height:8px;border-radius:4px;background:#e2cfae;overflow:hidden}
+.patb i{display:block;height:100%;background:var(--jade);transition:background .3s}
+.cust .say{position:absolute;left:50%;top:-34px;transform:translateX(-50%);white-space:nowrap;background:#1b1033e6;color:var(--paper);font-size:14px;padding:4px 10px;border-radius:12px;border:1px solid #6a4a72;opacity:0;transition:opacity .3s;pointer-events:none;font-weight:500}
+.cust .say.on{opacity:1}
+.cust .who{font-size:12px;font-weight:900;color:var(--haw);text-align:center;margin-bottom:-3px}
+.cust.hl .fig{filter:drop-shadow(0 0 10px var(--glaze))}
+
+/* Rack (straw bale) */
+.rslot{position:absolute;width:36px;height:140px;cursor:pointer;transition:transform .15s}
+.rslot svg{width:100%;height:100%}
+.rslot.sel{transform:translateY(-14px);filter:drop-shadow(0 0 8px #fff6b0) drop-shadow(0 0 3px var(--glaze))}
+.rslot.empty{cursor:default}
+#rack .cap{position:absolute;left:0;right:0;bottom:4px;text-align:center;font-size:13px;font-weight:700;color:var(--ink);z-index:3;pointer-events:none}
+
+/* Kitchen */
+#kitchen{position:absolute;left:0;top:430px;width:1280px;height:290px;background:linear-gradient(#3a1d10,#24120a);border-top:4px solid #000}
+#kitchen::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 158px,rgba(0,0,0,.18) 158px 160px);pointer-events:none}
+.st{position:absolute;top:10px;height:270px;border-radius:12px;cursor:pointer}
+.plate{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);background:var(--wood2);color:var(--bamboo);border:2px solid #000;border-radius:8px;padding:2px 10px;font-size:14px;font-weight:700;white-space:nowrap;z-index:5;font-variant-numeric:tabular-nums}
+.lock{position:absolute;inset:0;background:rgba(15,8,20,.78);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--bamboo);font-weight:700;font-size:15px;z-index:8;text-align:center;border:2px dashed #6a4a40}
+.lock small{font-weight:500;opacity:.8;font-size:12px}
+.st.hl,.bin.hl{box-shadow:0 0 0 3px var(--glaze),0 0 18px var(--glaze)}
+
+.tap svg{position:absolute;left:0;top:0}
+.board{width:120px;background:rgba(0,0,0,.22);border:2px solid rgba(0,0,0,.4)}
+.board.act{box-shadow:0 0 0 3px #fff2b0,0 0 16px var(--glaze)}
+.board .cb{position:absolute;left:10px;top:8px;width:100px;height:212px;border-radius:14px;background:linear-gradient(90deg,#d6a467,#e8bd80 40%,#d09a5c);border:3px solid #6a3a1a}
+.board .sk{position:absolute;left:34px;top:22px;width:52px;height:200px}
+.board .cnt{position:absolute;left:14px;right:14px;top:188px;text-align:center;font-size:13px;color:var(--ink);font-weight:900;background:rgba(255,240,210,.85);border-radius:8px;padding:2px 0;line-height:1.3}
+.pot{width:380px}
+.pot .slot{position:absolute;top:12px;width:66px;height:162px;display:flex;justify-content:center;z-index:2}
+.pot .slot svg{height:160px;width:auto}
+.pot .bars{position:absolute;left:0;right:0;top:204px;height:12px;z-index:4}
+.pot .bar{position:absolute;width:56px;height:12px;border-radius:6px;background:rgba(0,0,0,.55);border:2px solid #000;overflow:hidden}
+.pot .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--glaze)}
+.pot .bar.done i{background:linear-gradient(90deg,#ffe27a,#ffb547)}
+.pot .bar.warn{animation:flash .25s infinite alternate}
+.pot .bar.burnt i{background:#3a1a0a}
+@keyframes flash{to{border-color:var(--bad);box-shadow:0 0 8px var(--bad)}}
+.pot .msg{position:absolute;left:0;right:0;top:120px;text-align:center;font-size:18px;font-weight:900;color:#fff;z-index:6;text-shadow:0 2px 4px #000;pointer-events:none}
+.side{width:110px;height:130px}
+.side.b2{top:150px}
+.bins{position:absolute;left:924px;top:10px;width:342px;height:270px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;gap:8px}
+.bin{position:relative;border-radius:12px;background:linear-gradient(#6a3a1e,#4a2412);border:3px solid #2a1206;cursor:pointer;overflow:hidden}
+.bin svg{position:absolute;left:0;top:0;width:100%;height:100%}
+.bin:active,.st:active{transform:translateY(1px)}
+.bin .plate{bottom:3px;font-size:13px;padding:1px 8px}
+
+/* Hint, toasts, floats */
+#hint{position:absolute;left:50%;top:62px;transform:translateX(-50%);z-index:15;background:#1b1033ee;border:2px solid var(--glaze);color:#fff;font-size:17px;font-weight:700;padding:6px 18px;border-radius:20px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+#toast{position:absolute;left:50%;top:388px;transform:translateX(-50%);z-index:30;background:var(--paper);color:var(--ink);font-weight:700;font-size:17px;padding:8px 20px;border-radius:20px;border:3px solid var(--ink);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1}
+.float{position:absolute;z-index:40;font-weight:900;font-size:24px;color:#ffe27a;text-shadow:0 2px 0 #000,0 0 6px #000;pointer-events:none;animation:up 1.1s forwards;font-variant-numeric:tabular-nums;white-space:nowrap}
+.float.bad{color:#ff8a7a}
+@keyframes up{from{transform:translate(-50%,0)}to{transform:translate(-50%,-60px);opacity:0}}
+#banner{position:absolute;left:0;right:0;top:250px;text-align:center;font-family:var(--f-disp);font-size:72px;font-weight:700;color:var(--glaze);text-shadow:0 4px 0 #6a1010,0 0 30px rgba(255,140,40,.6);z-index:35;pointer-events:none;opacity:0;transform:scale(.8);transition:all .35s}
+#banner.on{opacity:1;transform:scale(1)}
+
+/* Modal */
+#modal{position:absolute;inset:0;z-index:50;background:rgba(10,5,18,.72);display:flex;align-items:center;justify-content:center}
+.card{background:var(--paper);color:var(--ink);border-radius:20px;border:4px solid var(--ink);box-shadow:0 8px 0 rgba(0,0,0,.4);padding:26px 30px;max-width:760px;width:760px;max-height:660px;overflow:auto;position:relative}
+.card h2{font-family:var(--f-disp);font-size:38px;margin:0 0 6px;color:var(--haw);text-wrap:balance}
+.card h3{font-size:18px;margin:16px 0 8px}
+.card p{font-size:16px;line-height:1.65;margin:6px 0}
+.btns{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.btn{font-size:18px;font-weight:900;padding:10px 22px;border-radius:14px;border:3px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 var(--ink)}
+.btn.pri{background:var(--haw);color:#fff}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.goals{display:flex;gap:10px;margin:12px 0}
+.goal{flex:1;background:#f5e2bf;border-radius:12px;padding:10px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.goal span{display:block;color:#b5781a;font-size:22px}
+.ev{display:flex;gap:14px;align-items:center;background:#2b150e;color:var(--paper);border-radius:14px;padding:12px 16px;margin:10px 0}
+.ev .ic{font-size:34px}
+.ev b{font-size:18px;color:var(--glaze)}
+.news{display:flex;gap:14px;align-items:center;background:#ffe7b8;border:2px dashed #c88a2a;border-radius:14px;padding:10px 16px;margin:10px 0}
+.news svg{height:64px;width:auto;flex:none}
+.sum{display:grid;grid-template-columns:1fr auto;gap:6px 20px;font-size:17px;margin:12px 0;font-variant-numeric:tabular-nums}
+.sum b{text-align:right}
+.sum .tot{border-top:2px solid var(--ink);padding-top:6px;font-size:20px}
+.bigstars{font-size:56px;letter-spacing:8px;text-align:center;color:#d9c7a7;margin:4px 0}
+.bigstars .on{color:#f2b41c;text-shadow:0 3px 0 #8a5a0a}
+.tabs{display:flex;gap:8px;margin:10px 0}
+.tab{padding:6px 16px;border-radius:12px;border:2px solid var(--ink);background:#fff;color:var(--ink);font-weight:700;cursor:pointer;font-size:16px}
+.tab.on{background:var(--ink);color:var(--paper)}
+.shop{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.up{background:#fff;border:2px solid #d9c09a;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.up b{font-size:16px}
+.up p{font-size:13px;margin:0;line-height:1.45;flex:1;color:#5a3a2a}
+.up .row{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.up .price{font-weight:900;color:var(--haw);font-variant-numeric:tabular-nums}
+.up .sbtn{font-size:14px;font-weight:900;padding:5px 12px;border-radius:10px;border:2px solid var(--ink);background:var(--glaze);color:var(--ink);cursor:pointer}
+.up .sbtn[disabled]{opacity:.4;cursor:not-allowed}
+.up.done{opacity:.55}
+.wallet{position:absolute;right:26px;top:26px;font-weight:900;font-size:20px;color:var(--haw);font-variant-numeric:tabular-nums}
+.how{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center;font-size:16px;line-height:1.5}
+.how .n{width:32px;height:32px;border-radius:16px;background:var(--haw);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}
+
+/* Home */
+#home{position:absolute;inset:0;z-index:45;overflow:hidden}
+#home svg.hbg{position:absolute;inset:0}
+.logo{position:absolute;left:90px;top:120px;font-family:var(--f-disp);font-weight:700}
+.logo .t1{font-size:120px;line-height:1;color:var(--glaze);text-shadow:0 6px 0 #7a1010,0 0 40px rgba(255,150,50,.45);letter-spacing:4px}
+.logo .t2{font-size:44px;color:var(--paper);margin-top:14px;letter-spacing:10px;text-shadow:0 3px 0 #000}
+.logo .t3{font-family:var(--f-body);font-size:17px;color:var(--bamboo);margin-top:16px;max-width:520px;line-height:1.6;font-weight:500}
+.hbtns{position:absolute;left:90px;top:470px;display:flex;gap:14px;flex-wrap:wrap;width:640px}
+.hbtns .btn{font-size:20px}
+.hstat{position:absolute;left:90px;top:560px;color:var(--bamboo);font-size:15px;font-variant-numeric:tabular-nums}
+
+#rotate{position:fixed;inset:0;z-index:99;background:var(--night);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--paper);font-size:20px;font-weight:700;text-align:center;padding:24px}
+#rotate .ph{width:70px;height:110px;border:5px solid var(--glaze);border-radius:14px;animation:rot 1.6s infinite ease-in-out}
+@keyframes rot{50%{transform:rotate(-90deg)}}
+#rotate button{font-size:15px;padding:8px 16px;border-radius:12px;border:2px solid var(--bamboo);background:transparent;color:var(--bamboo)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+
+<div id="wrap"><div id="stage">
+  <div id="hud">
+    <div class="pill day" id="hDay">第 1 天</div>
+    <div class="pbar"><div class="fill" id="hFill"></div><div class="lbl" id="hProfit">淨利 $0</div><span class="star" id="s1">★</span><span class="star" id="s2">★</span><span class="star" id="s3">★</span></div>
+    <div class="pill" id="hClock">18:00<small>開檔</small></div>
+    <div class="pill" id="hCoins">銀包 $200</div>
+    <button class="ibtn" data-act="music" id="bMusic" aria-label="音樂開關">♪</button>
+    <button class="ibtn" data-act="pause" aria-label="暫停">II</button>
+  </div>
+  <div id="scene">
+    <svg class="bg" id="bg" viewBox="0 0 1280 374" width="1280" height="374"></svg>
+    <div id="deco"></div><div id="decoF"></div>
+    <div id="custs"></div>
+    <svg id="counter" viewBox="0 0 1280 74" width="1280" height="74"></svg>
+    <div id="rack"></div>
+    <svg id="awn" viewBox="0 0 1280 40" width="1280" height="40"></svg>
+  </div>
+  <div id="kitchen"></div>
+  <div id="hint" hidden></div>
+  <div id="toast"></div>
+  <div id="banner"></div>
+  <div id="fx"></div>
+  <div id="home"></div>
+  <div id="modal" hidden></div>
+</div></div>
+<div id="rotate" hidden><div class="ph"></div><div>請將手機打橫嚟玩</div><button data-act="rotok" id="rotok">照玩</button></div>
+
+<script>
+(()=>{
+'use strict';
+const W=1280,H=720,DAYLEN=150,LASTORDER=.93;
+const $=s=>document.querySelector(s);
+const stage=$('#stage');
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ================= Data ================= */
+const FR={
+  sz:{n:'山楂',c:1,r:13,cook:4.0,day:1},
+  cm:{n:'草莓',c:3,r:15,cook:3.5,day:2},
+  tz:{n:'青提',c:1,r:12,cook:3.0,day:4},
+  jz:{n:'橘子',c:2,r:13,cook:3.5,day:6},
+  qy:{n:'奇異果',c:3,r:15,cook:3.0,buy:'kiwi'},
+};
+const MENU={
+  sz:{n:'山楂串',p:18,f:['sz','sz','sz','sz','sz'],day:1,w:5},
+  cm:{n:'草莓串',p:28,f:['cm','cm','cm'],day:2,w:4},
+  smt:{n:'酸梅湯',p:12,drink:1,day:3,w:3},
+  tz:{n:'青提串',p:22,f:['tz','tz','tz','tz','tz'],day:4,w:3},
+  zm:{n:'芝麻山楂',p:22,f:['sz','sz','sz','sz','sz'],ses:1,day:5,w:3},
+  jz:{n:'橘子串',p:24,f:['jz','jz','jz','jz'],day:6,w:3},
+  mix:{n:'什果串',p:32,f:['cm','tz','jz','sz'],day:7,w:3},
+  qy:{n:'奇異果串',p:30,f:['qy','qy','qy'],buy:'kiwi',w:3},
+};
+const NEWS={2:['cm','草莓串','三粒大草莓，小朋友最鍾意。'],3:['smt','酸梅湯','左邊個壺可以倒酸梅湯，點一下開始倒，倒滿再點拎起。'],4:['tz','青提串','五粒青提，沾糖最快。'],5:['zm','芝麻山楂','喺草靶揀一串山楂串，再點「芝麻」撒上去。商店仲開始賣奇異果。'],6:['jz','橘子串','四瓣橘子，酸酸甜甜。'],7:['mix','什果串','草莓、青提、橘子、山楂各一粒，串齊先賣得。']};
+const COST={stick:1,ses:1,cup:3,sugar:10};
+const mkey=f=>f.slice().sort().join(',');
+const RBK={};for(const k in MENU){const m=MENU[k];if(!m.drink&&!m.ses)RBK[mkey(m.f)]=k}
+
+const UPS=[
+  {id:'board2',n:'第二塊串籤板',d:'一邊串一邊沾糖，手腳快一倍。',cost:180,ok:()=>S.up.boards<2,go:()=>S.up.boards=2,done:()=>S.up.boards>=2},
+  {id:'rack6',n:'加大草靶',d:'草靶 4 → 6 個插位，可以預先整定啲貨。',cost:150,ok:()=>S.up.rack===4,go:()=>S.up.rack=6,done:()=>S.up.rack>=6},
+  {id:'rack9',n:'巨型草靶',d:'草靶 6 → 9 個插位。',cost:450,ok:()=>S.up.rack===6,go:()=>S.up.rack=9,done:()=>S.up.rack>=9,need:'先買加大草靶'},
+  {id:'pot3',n:'闊口糖鍋',d:'糖鍋 2 → 3 格，可以同時沾三串。',cost:260,ok:()=>S.up.pot===2,go:()=>S.up.pot=3,done:()=>S.up.pot>=3},
+  {id:'pot4',n:'特大糖鍋',d:'糖鍋 3 → 4 格。',cost:700,ok:()=>S.up.pot===3,go:()=>S.up.pot=4,done:()=>S.up.pot>=4,need:'先買闊口糖鍋'},
+  {id:'syrup',n:'大份糖漿',d:'每鍋糖漿可以沾 8 → 14 串。',cost:220,ok:()=>S.up.syrup===8,go:()=>S.up.syrup=14,done:()=>S.up.syrup>=14},
+  {id:'fastmelt',n:'猛火熬糖',d:'熬糖時間由 4 秒縮短到 2 秒。',cost:200,ok:()=>!S.up.fastmelt,go:()=>S.up.fastmelt=1,done:()=>!!S.up.fastmelt},
+  {id:'slow',n:'文火爐頭',d:'火候溫和，糖衣掛好之後遲 3 秒先焦。',cost:320,ok:()=>!S.up.slow,go:()=>S.up.slow=1,done:()=>!!S.up.slow},
+  {id:'seat4',n:'多一個企位',d:'同時招呼 4 位客人。',cost:250,ok:()=>S.up.seats===3,go:()=>S.up.seats=4,done:()=>S.up.seats>=4},
+  {id:'seat5',n:'再多一個企位',d:'同時招呼 5 位客人。',cost:650,ok:()=>S.up.seats===4,go:()=>S.up.seats=5,done:()=>S.up.seats>=5,need:'先買第四個企位'},
+  {id:'tapfast',n:'冰鎮酸梅湯壺',d:'倒一杯酸梅湯快一倍。',cost:240,ok:()=>!S.up.tapfast,go:()=>S.up.tapfast=1,done:()=>!!S.up.tapfast,vis:()=>S.day>=3},
+  {id:'tap2',n:'第二個酸梅湯壺',d:'兩杯酸梅湯可以同時倒。',cost:420,ok:()=>S.up.taps<2,go:()=>S.up.taps=2,done:()=>S.up.taps>=2,vis:()=>S.day>=3},
+];
+const NEWITEMS=[
+  {id:'kiwi',n:'奇異果',d:'解鎖奇異果串（$30），三片厚切，靚仔又好賣。',cost:600,day:5},
+];
+const DECO=[
+  {id:'lantern',n:'一串紅燈籠',d:'掛喺檔口，客人耐性 +8%。',cost:120,pat:.08},
+  {id:'sign',n:'手寫大招牌',d:'「冰糖葫蘆」四隻大字，客人耐性 +8%。',cost:200,pat:.08},
+  {id:'cat',n:'招財貓',d:'坐喺檔口招手，貼士 +10%。',cost:300,tip:.10},
+  {id:'speaker',n:'叫賣喇叭',d:'「新鮮糖葫蘆呀！」多 15% 客人。',cost:350,crowd:.15},
+  {id:'radio',n:'懷舊收音機',d:'播住粵語老歌，客人耐性 +10%。',cost:400,pat:.10},
+  {id:'neon',n:'霓虹燈牌',d:'閃下閃下好吸睛，貼士 +15%，多 10% 客人。',cost:480,tip:.15,crowd:.10},
+];
+const EVS={
+  rain:{ic:'🌧',n:'落雨天',d:'街上人少咗三成，但客人耐性 +30%。',crowd:.7,pat:1.3},
+  fest:{ic:'🎆',n:'夜市嘉年華',d:'人流多五成，貼士 +20%！',crowd:1.5,tip:1.2},
+  tour:{ic:'🚌',n:'旅行團到',d:'九點左右會有一大班遊客一齊湧到。',tour:1},
+  hot:{ic:'🌡',n:'悶熱夜晚',d:'人人想飲凍嘢，多人叫酸梅湯，耐性 -10%。',drink:1,pat:.9},
+};
+
+/* Customers */
+const SKINS=['#f6d2b0','#eec39a','#e2ad83','#c98c62','#f9dcc4'];
+const HAIRC=['#2a1a14','#3a2418','#5a3420','#1a1a22','#7a4a2a','#a8603a'];
+const TOPS=['#3a6ea5','#c0504d','#5b8a4a','#8a5aa8','#d08a2a','#2f8a8a','#a84a6a','#4a4a6a'];
+const REG=[
+  {id:'doudou',name:'豆豆',kid:1,skin:'#f9dcc4',hair:'#2a1a14',hs:'short',top:'#f2c230',acc:'cap',accC:'#d7372b',pat:.75,fav:['cm'],day:1,lines:['我要草莓㗎！','媽咪話可以食一串！','快啲啦～']},
+  {id:'chan',name:'陳婆婆',skin:'#eec39a',hair:'#c9c4bc',hs:'bun',top:'#7a4a8a',acc:'glasses',pat:1.45,fav:['sz','zm'],day:1,lines:['後生仔，唔該一串山楂。','慢慢嚟，唔使急。','以前北京食開呢隻味。']},
+  {id:'kathy',name:'Kathy',skin:'#f6d2b0',hair:'#1a1a22',hs:'bob',top:'#2a3a6a',pat:.85,fav:['cm','smt'],more:1,day:2,lines:['收工獎勵吓自己！','快啲呀，趕住搭車。','同事都要，順手買埋。']},
+  {id:'kit',name:'阿傑',skin:'#e2ad83',hair:'#1a1a22',hs:'spiky',top:'#f4f4f0',pat:.9,fav:['smt','tz'],day:3,lines:['打完波好口渴！','老闆，有冇凍飲？','聽講你哋好正喎。']},
+  {id:'yuki',name:'Yuki',skin:'#f9dcc4',hair:'#7a4a2a',hs:'long',top:'#e89aa8',acc:'beret',accC:'#c0504d',pat:1.1,fav:['jz','mix','qy'],day:4,lines:['わぁ、きれい！','Can I have this one?','好靚呀！影張相先。']},
+  {id:'ming',name:'肥仔明',skin:'#e2ad83',hair:'#2a1a14',hs:'short',top:'#d08a2a',big:1,pat:1.0,fav:['mix','sz'],more:1,day:5,lines:['老闆，有咩推介？','全部都想試吓！','今晚唔減肥住。']},
+];
+const MOBL=['唔該，要呢個！','嘩，好香呀。','行開行埋，買串試吓。','一串唔夠喉。','老闆，唔該！','好耐冇食過喇。'];
+const HS=['short','bob','pony','long','spiky'];
+
+/* ================= Save ================= */
+const DEF={v:1,day:1,coins:200,up:{seats:3,boards:1,pot:2,syrup:8,slow:0,fastmelt:0,rack:4,tapfast:0,taps:1},dec:{},own:{},stars:{},served:0,music:1,help:0};
+const clone=o=>JSON.parse(JSON.stringify(o));
+function load(){try{const v=JSON.parse(localStorage.getItem('tanghulu-save-v1')||'null');if(v&&v.v===1)return Object.assign(clone(DEF),v,{up:Object.assign({},DEF.up,v.up||{})})}catch(e){}return clone(DEF)}
+let S=load();
+function save(){try{localStorage.setItem('tanghulu-save-v1',JSON.stringify(S))}catch(e){}}
+try{window.claude?.hot?.snapshot?.(()=>({S}))}catch(e){}
+try{const hd=window.claude?.hot?.data;if(hd&&hd.S&&hd.S.v===1)S=hd.S}catch(e){}
+
+const fruitOpen=k=>{const f=FR[k];return f.buy?!!S.own[f.buy]:S.day>=f.day};
+const menuOpen=k=>{const m=MENU[k];return m.buy?!!S.own[m.buy]:S.day>=m.day};
+const sesOpen=()=>S.day>=5, smtOpen=()=>S.day>=3;
+const decSum=key=>DECO.reduce((s,d)=>s+(S.dec[d.id]&&d[key]?d[key]:0),0);
+const goals=d=>{const g=Math.round(50+(d-1)*38);return [g,Math.round(g*2),Math.round(g*2.9)]};
+
+/* ================= Audio ================= */
+let AC=null,master,mus,sfxG,musTimer=null,musStep=0,musNext=0;
+function ac(){
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.7;master.connect(AC.destination);mus=AC.createGain();mus.gain.value=S.music?.16:0;mus.connect(master);sfxG=AC.createGain();sfxG.gain.value=.55;sfxG.connect(master)}catch(e){AC=null;return null}}
+  if(AC.state==='suspended')AC.resume();return AC;
+}
+function tone(f,d,type='triangle',v=.3,when=0,dest,slide){if(!AC)return;const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.008);g.gain.exponentialRampToValueAtTime(.0008,t+d);o.connect(g);g.connect(dest||sfxG);o.start(t);o.stop(t+d+.05)}
+function noise(d,v=.2,ff=2000,when=0,q=1){if(!AC)return;const t=AC.currentTime+when,len=Math.floor(AC.sampleRate*d),b=AC.createBuffer(1,len,AC.sampleRate),ch=b.getChannelData(0);for(let i=0;i<len;i++)ch[i]=Math.random()*2-1;const s=AC.createBufferSource();s.buffer=b;const fl=AC.createBiquadFilter();fl.type='bandpass';fl.frequency.value=ff;fl.Q.value=q;const g=AC.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(fl);fl.connect(g);g.connect(sfxG);s.start(t)}
+const SFX={
+  tap:()=>tone(720,.06,'square',.06),
+  plop:()=>{tone(300,.1,'sine',.35,0,null,520);tone(620,.05,'sine',.1,.05)},
+  dip:()=>{noise(.5,.18,3200,0,.6);tone(180,.2,'sine',.12)},
+  ding:()=>{tone(1318,.25,'sine',.22);tone(1976,.3,'sine',.12,.07)},
+  coin:()=>{tone(988,.08,'square',.1);tone(1480,.22,'square',.1,.08)},
+  bad:()=>tone(220,.28,'sawtooth',.1,0,null,120),
+  burn:()=>{noise(.6,.2,800,0,.8);tone(110,.3,'sawtooth',.08)},
+  trash:()=>{noise(.18,.25,1200);tone(140,.12,'square',.08)},
+  pour:()=>noise(.6,.08,700,0,2),
+  sugar:()=>{noise(.35,.15,5000,0,.5)},
+  star:i=>{[784,988,1175,1568].forEach((f,j)=>tone(f*(1+i*.12),.25,'triangle',.18,j*.07))},
+  open:()=>{[523,659,784,1046].forEach((f,j)=>tone(f,.3,'triangle',.18,j*.1))},
+  close:()=>{[784,659,523,392].forEach((f,j)=>tone(f,.35,'triangle',.18,j*.12))},
+};
+function sfx(n,a){try{if(AC)SFX[n](a)}catch(e){}}
+/* Original pentatonic loop (G major pentatonic) */
+const SC=[392,440,494,587,659,784,880];
+const MEL=[4,-1,3,2, 3,4,5,-1, 4,3,2,-1, 1,2,0,-1, 2,-1,3,4, 5,4,3,2, 3,2,1,2, 0,-1,-1,-1, 4,5,6,5, 4,-1,3,-1, 2,3,4,3, 2,1,2,-1, 1,-1,2,3, 2,1,0,1, 2,-1,1,-1, 0,-1,-1,-1];
+const BASS=[196,0,147,0,165,0,147,0];
+function musTick(){if(!AC||!S.music)return;const step=.27;while(musNext<AC.currentTime+.3){const w=musNext-AC.currentTime,i=musStep%MEL.length,m=MEL[i];if(m>=0){tone(SC[m],.5,'triangle',.11,w,mus);tone(SC[m]*2,.18,'sine',.025,w,mus)}if(i%2===0){const b=BASS[(i/2)%8];if(b)tone(b/2,.55,'sine',.16,w,mus)}if(i%4===2)tone(2400,.03,'square',.012,w,mus);musStep++;musNext+=step}}
+function musicOn(){if(!ac())return;mus.gain.value=S.music?.16:0;if(!musTimer){musNext=AC.currentTime+.1;musTimer=setInterval(musTick,90)}}
+function syncMusicBtn(){$('#bMusic').style.opacity=S.music?1:.45}
+
+/* ================= Art ================= */
+const O='#2b150e';
+function fruit(k,cx,cy,r,ses){
+  let s='';
+  if(k==='sz'){s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#c81e2c" stroke="#5a0a12" stroke-width="2"/><circle cx="${cx-r*.38}" cy="${cy-r*.38}" r="${r*.3}" fill="#ff7a6a" opacity=".5"/><circle cx="${cx+r*.35}" cy="${cy+r*.15}" r="1.2" fill="#ffd8c8"/><circle cx="${cx-r*.1}" cy="${cy+r*.5}" r="1.1" fill="#ffd8c8"/><circle cx="${cx+r*.05}" cy="${cy-r*.05}" r="1" fill="#ffd8c8"/><path d="M${cx+r*.62} ${cy-r*.62}l3-1.5-1 3 3 1-3 1z" fill="#3a1408"/>`}
+  else if(k==='cm'){s=`<path d="M${cx} ${cy+r}C${cx-r*1.15} ${cy+r*.25} ${cx-r*1.05} ${cy-r*.85} ${cx} ${cy-r*.72}C${cx+r*1.05} ${cy-r*.85} ${cx+r*1.15} ${cy+r*.25} ${cx} ${cy+r}Z" fill="#e8243c" stroke="#6a0a16" stroke-width="2"/>`;[[-.4,-.25],[.35,-.3],[0,.05],[-.3,.35],[.3,.3],[0,.62],[-.6,.05],[.6,.02]].forEach(([a,b])=>s+=`<ellipse cx="${cx+a*r}" cy="${cy+b*r}" rx="1.1" ry="1.6" fill="#ffe27a"/>`);s+=`<path d="M${cx-r*.7} ${cy-r*.7}L${cx-r*.2} ${cy-r*.95}L${cx} ${cy-r*1.25}L${cx+r*.2} ${cy-r*.95}L${cx+r*.7} ${cy-r*.7}L${cx} ${cy-r*.55}Z" fill="#3aa04a" stroke="#1a5a1a" stroke-width="1.5"/>`}
+  else if(k==='tz'){s=`<ellipse cx="${cx}" cy="${cy}" rx="${r*.86}" ry="${r}" fill="#9fd04a" stroke="#3a6a12" stroke-width="2"/><ellipse cx="${cx-r*.3}" cy="${cy-r*.35}" rx="${r*.22}" ry="${r*.32}" fill="#e6ffb0" opacity=".6"/>`}
+  else if(k==='jz'){s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ff9a1f" stroke="#9a4a00" stroke-width="2"/>`;for(let i=0;i<6;i++){const a=i*Math.PI/3;s+=`<line x1="${cx}" y1="${cy}" x2="${cx+Math.cos(a)*r*.85}" y2="${cy+Math.sin(a)*r*.85}" stroke="#ffcf7a" stroke-width="1.4"/>`}s+=`<circle cx="${cx}" cy="${cy}" r="2" fill="#fff0c8"/>`}
+  else if(k==='qy'){s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#7a5426" stroke="#3a2410" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${r*.84}" fill="#8cc63f"/><circle cx="${cx}" cy="${cy}" r="${r*.36}" fill="#eef6c0"/>`;for(let i=0;i<10;i++){const a=i*Math.PI/5;s+=`<ellipse cx="${cx+Math.cos(a)*r*.58}" cy="${cy+Math.sin(a)*r*.58}" rx="1" ry="1.8" fill="#1a1a10" transform="rotate(${a*57.3+90} ${cx+Math.cos(a)*r*.58} ${cy+Math.sin(a)*r*.58})"/>`}}
+  return s;
+}
+function coat(cx,cy,r,st,a){
+  if(st==='raw')return '';
+  if(st==='burnt')return `<ellipse cx="${cx}" cy="${cy}" rx="${r+2}" ry="${r+2}" fill="rgba(58,22,6,.82)" stroke="#1a0802" stroke-width="2"/><path d="M${cx-r*.5} ${cy-r*.3}q4-4 8 0" stroke="#5a3010" stroke-width="2" fill="none"/>`;
+  const al=st==='done'?1:a;
+  return `<ellipse cx="${cx}" cy="${cy}" rx="${r+2}" ry="${r+2}" fill="rgba(255,190,80,${.12+.3*al})" stroke="rgba(255,225,150,${.85*al})" stroke-width="1.6"/><path d="M${cx-r*.7} ${cy-r*.15}A${r*.75} ${r*.75} 0 0 1 ${cx-r*.05} ${cy-r*.78}" stroke="rgba(255,255,255,${.9*al})" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+}
+function sesame(cx,cy,r){let s='';[[-.5,-.1,20],[.3,-.5,-30],[.45,.3,60],[-.15,.5,10],[-.1,-.6,80],[.6,-.1,-50]].forEach(([a,b,rt])=>s+=`<ellipse cx="${cx+a*r}" cy="${cy+b*r}" rx="1.1" ry="2" fill="#fff6dc" stroke="#8a6a3a" stroke-width=".4" transform="rotate(${rt} ${cx+a*r} ${cy+b*r})"/>`);return s}
+function skewer(fr,st='raw',ses=0,a=0){
+  let s=`<svg viewBox="0 0 44 170" xmlns="http://www.w3.org/2000/svg"><rect x="20.5" y="2" width="3" height="166" rx="1.5" fill="#e9cc8e" stroke="#8a6a3a" stroke-width=".8"/>`;
+  let y=4,prev=0;
+  fr.forEach((k,i)=>{const r=FR[k].r;y+= i===0?r:prev+r-3;prev=r;s+=fruit(k,22,y,r)+coat(22,y,r,st,a)+(ses?sesame(22,y,r):'')});
+  if(st==='done'&&fr.length)s+=`<path d="M36 10l1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5z" fill="#fff"/>`;
+  return s+'</svg>';
+}
+function cup(fill=1,big){
+  const lv=78-fill*56;
+  return `<svg viewBox="0 0 50 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 6l-6 30" stroke="#d7372b" stroke-width="4" stroke-linecap="round"/><path d="M9 20h32l-4 72H13z" fill="rgba(255,255,255,.25)" stroke="${O}" stroke-width="2.5"/>${fill>0?`<path d="M${9+ (lv-20)/72*4} ${lv}h${32-2*(lv-20)/72*4}l${-(92-lv)/72*4} ${92-lv}H${13}z" fill="#5a1626"/><path d="M${10+(lv-20)/72*4} ${lv+3}h28" stroke="#8a2a3a" stroke-width="2"/>`:''}<rect x="6" y="16" width="38" height="6" rx="3" fill="#f4f4f0" stroke="${O}" stroke-width="2"/>${fill>=1?'<path d="M18 50h4M28 62h4" stroke="#fff" stroke-width="2" opacity=".6"/>':''}</svg>`;
+}
+function itemArt(k){const m=MENU[k];return m.drink?cup(1):skewer(m.f,'done',m.ses)}
+function orderIcon(k){
+  const m=MENU[k];if(m.drink)return cup(1);
+  const ty=[...new Set(m.f)];
+  let s=`<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="30.5" y="0" width="3" height="64" rx="1.5" fill="#e9cc8e" stroke="#8a6a3a" stroke-width=".8"/>`;
+  if(ty.length===1){const r=21;s+=fruit(ty[0],32,30,r)+coat(32,30,r,'done',1)+(m.ses?sesame(32,30,r):'')+`<circle cx="51" cy="51" r="12" fill="${O}"/><text x="51" y="56" text-anchor="middle" font-size="14" font-weight="900" fill="#fff" font-family="Noto Sans TC,sans-serif">×${m.f.length}</text>`}
+  else{[[19,19],[45,19],[19,45],[45,45]].forEach(([x,y],i)=>{const f=m.f[i%m.f.length],r=12;s+=fruit(f,x,y,r)+coat(x,y,r,'done',1)})}
+  return s+'</svg>';
+}
+
+function figure(L,mood){
+  const sk=L.skin,hc=L.hair,tp=L.top;
+  let back='',hair='',acc='';
+  if(L.hs==='long')back=`<path d="M34 90C28 140 40 176 50 182L110 182C120 176 132 140 126 90Z" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
+  if(L.hs==='pony')back=`<ellipse cx="128" cy="96" rx="16" ry="26" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
+  if(L.hs==='bun')back=`<circle cx="80" cy="38" r="18" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
+  const top=`M34 92C30 50 58 40 80 40C104 40 132 50 126 92C118 72 100 64 80 66C62 64 44 72 34 92Z`;
+  if(L.hs==='spiky')hair=`<path d="M34 92L30 56L46 62L50 36L64 52L78 30L88 50L104 34L108 56L126 50L126 92C118 72 100 66 80 68C60 66 44 72 34 92Z" fill="${hc}" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>`;
+  else if(L.hs==='bob')hair=`<path d="M30 124C24 60 52 40 80 40C108 40 136 60 130 124L118 124C120 96 112 74 80 70C48 74 40 96 42 124Z" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
+  else hair=`<path d="${top}" fill="${hc}" stroke="${O}" stroke-width="4"/>`;
+  if(L.acc==='cap')acc=`<path d="M34 74C36 44 60 34 80 34C102 34 124 44 126 74Z" fill="${L.accC}" stroke="${O}" stroke-width="4"/><path d="M90 72Q130 66 146 78Q120 82 92 80Z" fill="${L.accC}" stroke="${O}" stroke-width="4"/>`;
+  if(L.acc==='beret')acc=`<ellipse cx="74" cy="48" rx="46" ry="16" fill="${L.accC}" stroke="${O}" stroke-width="4" transform="rotate(-8 74 48)"/><circle cx="72" cy="31" r="4" fill="${O}"/>`;
+  if(L.acc==='glasses')acc=`<g fill="none" stroke="#6a4a2a" stroke-width="3"><circle cx="63" cy="96" r="11"/><circle cx="97" cy="96" r="11"/><path d="M74 96h12"/></g>`;
+  let eyes,brows='',mouth;
+  if(mood==='happy'){eyes=`<path d="M56 98q7-9 14 0M90 98q7-9 14 0" stroke="${O}" stroke-width="4" fill="none" stroke-linecap="round"/>`;mouth=`<path d="M68 114q12 14 24 0z" fill="#a8342a" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>`}
+  else if(mood==='worry'){eyes=`<circle cx="63" cy="98" r="4.5" fill="${O}"/><circle cx="97" cy="98" r="4.5" fill="${O}"/>`;brows=`<path d="M54 84l16 4M106 84l-16 4" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>`;mouth=`<path d="M70 120q5-4 10 0t10 0" stroke="${O}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`}
+  else if(mood==='angry'){eyes=`<circle cx="63" cy="99" r="4.5" fill="${O}"/><circle cx="97" cy="99" r="4.5" fill="${O}"/>`;brows=`<path d="M54 86l16 6M106 86l-16 6" stroke="${O}" stroke-width="4.5" stroke-linecap="round"/>`;mouth=`<path d="M68 122q12-10 24 0" stroke="${O}" stroke-width="4" fill="none" stroke-linecap="round"/>`}
+  else{eyes=`<circle cx="63" cy="98" r="5" fill="${O}"/><circle cx="97" cy="98" r="5" fill="${O}"/><circle cx="65" cy="96" r="1.6" fill="#fff"/><circle cx="99" cy="96" r="1.6" fill="#fff"/>`;mouth=`<path d="M72 116q8 6 16 0" stroke="${O}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`}
+  const blush=mood==='angry'?'#ff5a4a':'#ff9a8a';
+  const bodyW=L.big?1.2:1;
+  const body=`<g transform="translate(80 0) scale(${bodyW} 1) translate(-80 0)"><path d="M14 222C16 160 46 140 80 140C114 140 144 160 146 222Z" fill="${tp}" stroke="${O}" stroke-width="4"/><path d="M64 140L80 162L96 140" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="4"/></g>`;
+  const head=`<rect x="68" y="126" width="24" height="20" fill="${sk}" stroke="${O}" stroke-width="4"/><circle cx="80" cy="92" r="${L.big?50:46}" fill="${sk}" stroke="${O}" stroke-width="4"/>`;
+  const inner=`${back}${body}${head}${hair}<ellipse cx="54" cy="112" rx="8" ry="5" fill="${blush}" opacity=".55"/><ellipse cx="106" cy="112" rx="8" ry="5" fill="${blush}" opacity=".55"/>${eyes}${brows}${mouth}${acc}${mood==='angry'?`<path d="M122 54l8-8M128 62l10-2M118 46l2-10" stroke="#ff5a4a" stroke-width="4" stroke-linecap="round"/>`:''}`;
+  const g=L.kid?`<g transform="translate(14 40) scale(.82)">${inner}</g>`:inner;
+  return `<svg viewBox="0 0 160 222" width="160" height="222" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
+}
+
+/* Scene background */
+function drawBG(){
+  let s=`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140a2a"/><stop offset=".6" stop-color="#3b1a40"/><stop offset="1" stop-color="#5a2438"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".9"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/></radialGradient><filter id="blur"><feGaussianBlur stdDeviation="2.5"/></filter></defs><rect width="1280" height="374" fill="url(#sky)"/>`;
+  // far towers
+  let x=0,seed=7;const r=()=>(seed=(seed*9301+49297)%233280)/233280;
+  while(x<1280){const w=50+r()*70,h=90+r()*120;s+=`<rect x="${x}" y="${230-h}" width="${w}" height="${h+40}" fill="#22123a"/>`;for(let wy=230-h+10;wy<250;wy+=14)for(let wx=x+6;wx<x+w-8;wx+=12)if(r()<.35)s+=`<rect x="${wx}" y="${wy}" width="6" height="7" fill="${r()<.5?'#ffd98a':'#9ad0ff'}" opacity="${.35+r()*.4}"/>`;x+=w+4}
+  // distant stall signs (HK night market)
+  const signs=[['雞蛋仔','#ff5a7a',90],['魚蛋','#5ad0ff',300],['炒栗子','#ffcf4a',520],['豆腐花','#9aff7a',760],['臭豆腐','#ff8a3a',980],['砵仔糕','#d08aff',1170]];
+  signs.forEach(([t,c,sx])=>{const w=t.length*30+20;s+=`<g opacity=".85"><rect x="${sx-w/2}" y="150" width="${w}" height="40" rx="6" fill="#120a1e" stroke="${c}" stroke-width="3"/><rect x="${sx-w/2}" y="150" width="${w}" height="40" rx="6" fill="none" stroke="${c}" stroke-width="8" opacity=".35" filter="url(#blur)"/><text x="${sx}" y="179" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-weight="700" font-size="26" fill="${c}">${t}</text></g><rect x="${sx-w/2-20}" y="190" width="${w+40}" height="60" fill="#2a1430"/><path d="M${sx-w/2-26} 196h${w+52}" stroke="#4a2a40" stroke-width="10"/>`});
+  // ground
+  s+=`<rect y="248" width="1280" height="126" fill="#2a1622"/><rect y="248" width="1280" height="6" fill="#3e2230"/>`;
+  for(let i=0;i<14;i++)s+=`<ellipse cx="${i*100+40}" cy="${300+(i%3)*18}" rx="40" ry="5" fill="#ffcf6a" opacity=".05"/>`;
+  // string lights
+  for(let k=0;k<2;k++){const y0=52+k*34,sag=26;let p=`M-10 ${y0}`;for(let i=0;i<5;i++){const a=i*280-10;p+=` Q${a+140} ${y0+sag} ${a+280} ${y0}`}s+=`<path d="${p}" stroke="#120a10" stroke-width="2" fill="none"/>`;for(let i=0;i<5;i++)for(let j=1;j<8;j++){const t=j/8,a=i*280-10,bx=a+280*t,by=y0+sag*2*t*(1-t)*1.0;const col=['#ffcf6a','#ff7a5a','#ffe9a0','#ff9ad0'][(i+j+k)%4];s+=`<circle cx="${bx}" cy="${by+5}" r="13" fill="url(#glow)" opacity=".5"/><circle cx="${bx}" cy="${by+5}" r="4" fill="${col}"/>`}}
+  $('#bg').innerHTML=s;
+  // awning
+  let a='';for(let i=0;i<32;i++){const c=i%2?'#f4ead8':'#c81e2c';a+=`<path d="M${i*40} 0h40v26a20 12 0 0 1-40 0z" fill="${c}" stroke="#4a0a10" stroke-width="2"/>`}
+  $('#awn').innerHTML=a+`<rect width="1280" height="6" fill="#4a0a10"/>`;
+  // counter
+  $('#counter').innerHTML=`<defs><linearGradient id="ctr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a2a1a"/><stop offset="1" stop-color="#4a120a"/></linearGradient></defs><rect width="1280" height="14" fill="#c9884a" stroke="#3a1a0a" stroke-width="2"/><rect y="14" width="1280" height="60" fill="url(#ctr)"/>${Array.from({length:16},(_,i)=>`<rect x="${i*80+4}" y="20" width="72" height="50" rx="4" fill="none" stroke="#2a0a06" stroke-width="2" opacity=".5"/>`).join('')}<g transform="translate(700 22)"><rect x="-150" y="0" width="300" height="44" rx="8" fill="#f4e2b8" stroke="#3a1a0a" stroke-width="3"/><text x="0" y="33" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-weight="700" font-size="30" fill="#c81e2c" letter-spacing="8">冰糖葫蘆・串串甜</text></g>`;
+}
+function drawDeco(){
+  let h='';
+  const svg=(x,y,w,hh,inner,vb)=>`<svg style="position:absolute;left:${x}px;top:${y}px" width="${w}" height="${hh}" viewBox="${vb||`0 0 ${w} ${hh}`}">${inner}</svg>`;
+  if(S.dec.lantern){let l='';[300,560,820,1080].forEach((x,i)=>{l+=`<line x1="${x}" y1="30" x2="${x}" y2="46" stroke="#2a1006" stroke-width="2"/><ellipse cx="${x}" cy="66" rx="18" ry="22" fill="#d7372b" stroke="#6a0a0a" stroke-width="2"/><rect x="${x-10}" y="42" width="20" height="5" fill="#e8b84a"/><rect x="${x-10}" y="85" width="20" height="5" fill="#e8b84a"/><path d="M${x} 90v10" stroke="#e8b84a" stroke-width="2"/><ellipse cx="${x}" cy="66" rx="30" ry="30" fill="#ff7a4a" opacity=".12"/>`});h+=svg(0,0,1280,110,l)}
+  if(S.dec.sign)h+=svg(6,40,72,190,`<rect x="4" y="4" width="64" height="182" rx="6" fill="#f4e2b8" stroke="#3a1a0a" stroke-width="3"/><text x="36" y="48" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-size="36" font-weight="700" fill="#c81e2c">冰</text><text x="36" y="90" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-size="36" font-weight="700" fill="#c81e2c">糖</text><text x="36" y="132" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-size="36" font-weight="700" fill="#c81e2c">葫</text><text x="36" y="174" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-size="36" font-weight="700" fill="#c81e2c">蘆</text>`);
+  if(S.dec.neon)h+=svg(86,58,190,54,`<rect x="3" y="3" width="184" height="48" rx="10" fill="#120a1e" stroke="#ff5aa8" stroke-width="3"/><rect x="3" y="3" width="184" height="48" rx="10" fill="none" stroke="#ff5aa8" stroke-width="10" opacity=".3"/><text x="95" y="37" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-weight="700" font-size="28" fill="#ffd0ea" style="filter:drop-shadow(0 0 4px #ff5aa8)">甜到入心</text>`);
+  let f='';
+  if(S.dec.cat)f+=svg(1196,310,60,58,`<ellipse cx="30" cy="44" rx="22" ry="14" fill="#f4f0e8" stroke="${O}" stroke-width="2.5"/><circle cx="30" cy="26" r="17" fill="#f4f0e8" stroke="${O}" stroke-width="2.5"/><path d="M16 16l2-12 8 8M44 16l-2-12-8 8" fill="#f4f0e8" stroke="${O}" stroke-width="2.5"/><path d="M23 26q2-3 4 0M33 26q2-3 4 0" stroke="${O}" stroke-width="2" fill="none"/><path d="M27 32q3 3 6 0" stroke="${O}" stroke-width="2" fill="none"/><circle cx="30" cy="40" r="4" fill="#e8b84a" stroke="${O}" stroke-width="1.5"/><path d="M50 30q8-12 2-22" stroke="${O}" stroke-width="7" stroke-linecap="round" fill="none"/><path d="M50 30q8-12 2-22" stroke="#f4f0e8" stroke-width="4" stroke-linecap="round" fill="none"/>`);
+  if(S.dec.radio)f+=svg(300,318,78,48,`<rect x="3" y="10" width="72" height="36" rx="6" fill="#a8603a" stroke="${O}" stroke-width="2.5"/><circle cx="24" cy="28" r="11" fill="#3a2418" stroke="${O}" stroke-width="2"/><rect x="42" y="18" width="26" height="8" rx="2" fill="#f4e2b8"/><circle cx="50" cy="36" r="3" fill="#f4e2b8"/><circle cx="62" cy="36" r="3" fill="#f4e2b8"/><path d="M18 10l30-8" stroke="${O}" stroke-width="2.5"/>`);
+  if(S.dec.speaker)f+=svg(1130,312,48,52,`<path d="M6 18h10l20-12v40l-20-12H6z" fill="#e8e4dc" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/><path d="M40 16q6 10 0 20" stroke="#ffe27a" stroke-width="3" fill="none"/><rect x="10" y="30" width="5" height="20" fill="#5a5a5a"/>`);
+  $('#deco').innerHTML=h;$('#decoF').innerHTML=f;
+}
+
+/* ================= Run state ================= */
+let R=null,MODE='home',PAUSE=false;
+function newRun(){
+  const evPool=['rain','fest','tour'];if(smtOpen())evPool.push('hot');
+  const ev=S.day>=3&&Math.random()<.45?pick(evPool):null;
+  R={t:0,rev:0,cost:0,tips:0,served:0,angry:0,custs:[],cid:0,boards:Array.from({length:S.up.boards},()=>({st:0,f:[]})),active:0,
+     pot:Array.from({length:S.up.pot},()=>null),syrup:S.up.syrup,melt:0,rack:Array.from({length:S.up.rack},()=>null),
+     taps:Array.from({length:S.up.taps},()=>({f:0,on:0,ready:0})),sel:null,spawnT:2.5,closing:false,ended:false,ev,evd:ev?EVS[ev]:{},tourDone:false,snap:clone(S),
+     regSeen:{},starsShown:0};
+}
+const profit=()=>R?R.rev-R.cost:0;
+
+/* ================= Kitchen DOM ================= */
+function buildKitchen(){
+  const k=$('#kitchen');
+  let h='';
+  // taps
+  h+=`<div class="st tap" style="left:14px;width:124px" id="tapSt"></div>`;
+  // boards
+  for(let i=0;i<2;i++)h+=`<div class="st board" data-act="board" data-i="${i}" id="board${i}" style="left:${150+i*128}px"><div class="cb"></div><div class="sk"></div><div class="cnt"></div><div class="plate">串籤板 ${i+1}</div></div>`;
+  // pot
+  h+=`<div class="st pot" data-act="pot" id="potSt" style="left:410px"><svg width="380" height="270" viewBox="0 0 380 270" style="position:absolute;inset:0"><ellipse cx="190" cy="250" rx="170" ry="12" fill="rgba(0,0,0,.4)"/><path d="M150 236l-8 20h96l-8-20z" fill="#2a2a2e"/><g id="flame"></g><ellipse cx="190" cy="140" rx="176" ry="26" fill="#3a2a22" stroke="#000" stroke-width="3"/><ellipse id="syrupS" cx="190" cy="142" rx="164" ry="19" fill="#e89a2a"/></svg><div id="slots"></div><svg width="380" height="270" viewBox="0 0 380 270" style="position:absolute;inset:0;pointer-events:none;z-index:3"><path d="M14 140C14 200 70 238 190 238C310 238 366 200 366 140C366 156 300 168 190 168C80 168 14 156 14 140Z" fill="#b8642a" stroke="#000" stroke-width="3"/><path d="M30 160C60 190 120 200 190 200" stroke="#e8a060" stroke-width="5" fill="none" opacity=".6" stroke-linecap="round"/><path d="M14 140C14 156 80 168 190 168C300 168 366 156 366 140" stroke="#000" stroke-width="3" fill="none"/><rect x="0" y="146" width="22" height="12" rx="5" fill="#2a1a12" stroke="#000" stroke-width="2"/><rect x="358" y="146" width="22" height="12" rx="5" fill="#2a1a12" stroke="#000" stroke-width="2"/></svg><div class="bars" id="bars"></div><div class="msg" id="potMsg"></div><div class="plate" id="potPlate">糖鍋</div></div>`;
+  // side
+  h+=`<div class="st side" data-act="sugar" id="sugarSt" style="left:802px"><svg width="110" height="130" viewBox="0 0 110 130"><path d="M22 30l8-14h50l8 14v80H22z" fill="#f4f0e8" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><path d="M30 16l6 14M80 16l-6 14" stroke="${O}" stroke-width="2"/><rect x="30" y="50" width="50" height="34" rx="4" fill="#c81e2c"/><text x="55" y="75" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-size="22" font-weight="700" fill="#fff">白糖</text><path d="M44 96h22" stroke="#bbb" stroke-width="3"/></svg><div class="plate">熬糖 $10</div></div>`;
+  h+=`<div class="st side b2" data-act="trash" id="trashSt" style="left:802px"><svg width="110" height="130" viewBox="0 0 110 130"><rect x="26" y="20" width="58" height="10" rx="4" fill="#6a7a7a" stroke="${O}" stroke-width="3"/><rect x="46" y="12" width="18" height="8" rx="3" fill="#6a7a7a" stroke="${O}" stroke-width="3"/><path d="M30 32h50l-6 74H36z" fill="#8a9a9a" stroke="${O}" stroke-width="3"/><path d="M45 42v54M55 42v54M65 42v54" stroke="#5a6a6a" stroke-width="3"/></svg><div class="plate">垃圾桶</div></div>`;
+  // bins
+  h+=`<div class="bins">${['sz','cm','tz','jz','qy','ses'].map(b=>`<div class="bin" data-act="${b==='ses'?'sesame':'fruit'}" data-k="${b}" id="bin_${b}"></div>`).join('')}</div>`;
+  k.innerHTML=h;
+  ['sz','cm','tz','jz','qy'].forEach(f=>{
+    const r=FR[f].r*1.25;let s=`<svg viewBox="0 0 110 130"><path d="M6 64h98v60H6z" fill="#8a4a22" stroke="#2a1206" stroke-width="2"/>`;
+    const pos=[[30,74],[55,70],[80,74],[42,92],[68,92],[22,98],[90,98],[55,108],[34,112],[78,112]];
+    pos.forEach(([x,y])=>s+=fruit(f,x,y-14,r));
+    s+=`<path d="M4 102h102v24H4z" fill="#6a3418" stroke="#2a1206" stroke-width="2"/></svg><div class="plate">${FR[f].n} $${FR[f].c}</div><div class="lock" hidden></div>`;
+    $('#bin_'+f).innerHTML=s;
+  });
+  let ss=`<svg viewBox="0 0 110 130"><ellipse cx="55" cy="84" rx="44" ry="24" fill="#f4f0e8" stroke="${O}" stroke-width="3"/><ellipse cx="55" cy="80" rx="34" ry="14" fill="#e8d6a8"/>`;for(let i=0;i<40;i++){const a=i*2.4,rr=Math.sqrt(i)*4.6;ss+=`<ellipse cx="${55+Math.cos(a)*rr*1.3}" cy="${80+Math.sin(a)*rr*.5}" rx="1.4" ry="2.2" fill="${i%3?'#fff8e0':'#3a2a1a'}" transform="rotate(${i*37} ${55+Math.cos(a)*rr*1.3} ${80+Math.sin(a)*rr*.5})"/>`}
+  $('#bin_ses').innerHTML=ss+`</svg><div class="plate">芝麻 $1</div><div class="lock" hidden></div>`;
+}
+let sig={};
+function setH(el,key,html){if(sig[key]!==html){sig[key]=html;el.innerHTML=html}}
+
+function renderKitchen(){
+  // taps
+  const tapEl=$('#tapSt');
+  let th='';
+  if(!smtOpen())th=`<div class="lock">酸梅湯<br><small>第 3 天開放</small></div>`;
+  else R.taps.forEach((t,i)=>{
+    const n=R.taps.length,w=n>1?62:124,x=i*w;
+    const fill=t.ready?1:t.on?Math.floor(t.f*10)/10:0;
+    const sel=R.sel&&R.sel.t==='tap'&&R.sel.i===i;
+    th+=`<div data-act="tap" data-i="${i}" style="position:absolute;left:${x}px;top:0;width:${w}px;height:270px;cursor:pointer"><svg width="${w}" height="270" viewBox="0 0 124 270" preserveAspectRatio="xMidYMid meet"><rect x="22" y="8" width="80" height="120" rx="14" fill="rgba(200,230,255,.18)" stroke="#9ac0d0" stroke-width="3"/><rect x="28" y="40" width="68" height="84" rx="10" fill="#5a1626"/><path d="M34 52q30 8 56 0" stroke="#8a2a3a" stroke-width="3" fill="none"/><rect x="18" y="4" width="88" height="12" rx="5" fill="#d7372b" stroke="${O}" stroke-width="2"/><text x="62" y="90" text-anchor="middle" font-family="LXGW WenKai TC,serif" font-weight="700" font-size="20" fill="#ffd0b0">酸梅湯</text><rect x="54" y="128" width="16" height="16" fill="#c9c9c9" stroke="${O}" stroke-width="2"/><path d="M50 144h24v8H50z" fill="#9a9a9a" stroke="${O}" stroke-width="2"/>${t.on&&!t.ready?`<rect x="60" y="152" width="4" height="${40}" fill="#5a1626"/>`:''}<rect x="10" y="232" width="104" height="10" rx="4" fill="#5a3a2a"/></svg><div style="position:absolute;left:50%;top:${150}px;transform:translateX(-50%) ${sel?'translateY(-10px)':''};width:${n>1?44:54}px;${sel?'filter:drop-shadow(0 0 8px #fff6b0)':''}">${t.on||t.ready?cup(fill):`<div style="height:${n>1?88:108}px;display:flex;align-items:center;justify-content:center;color:var(--bamboo);font-size:12px;font-weight:700;text-align:center">點一下<br>倒一杯</div>`}</div></div>`;
+  });
+  th+=`<div class="plate">酸梅湯 $3/杯</div>`;
+  setH(tapEl,'tap',th);
+  // boards
+  for(let i=0;i<2;i++){
+    const el=$('#board'+i),b=R.boards[i];
+    if(!b){setH(el,'b'+i,`<div class="cb" style="opacity:.3"></div><div class="lock">第二塊串籤板<br><small>商店購買</small></div><div class="plate">串籤板 ${i+1}</div>`);el.classList.remove('act');continue}
+    el.classList.toggle('act',R.active===i&&R.boards.length>1);
+    const m=b.st?RBK[mkey(b.f)]:null;
+    const cnt=b.st?(b.f.length?`${b.f.length}/5 粒${m&&menuOpen(m)?` · ${MENU[m].n}`:''}`:'空竹籤'):'點水果開始串';
+    setH(el,'b'+i,`<div class="cb"></div><div class="sk">${b.st?skewer(b.f):''}</div><div class="cnt">${cnt}</div><div class="plate">串籤板 ${i+1}</div>`);
+  }
+  // pot slots
+  const n=R.pot.length,sw=76,x0=190-n*sw/2;
+  let sh='',bh='';
+  R.pot.forEach((p,i)=>{
+    const x=x0+i*sw+5;
+    let art='',bar='';
+    if(p){
+      const st=p.t<p.cook?'raw':p.t<p.cook+p.win?'done':'burnt';
+      const a=Math.floor(clamp(p.t/p.cook,0,1)*8)/8;
+      art=skewer(p.f,st==='raw'?(a>0?'coat':'raw'):st,0,a);
+      let cls='bar',w=0;
+      if(st==='raw'){w=p.t/p.cook*100}else if(st==='done'){cls+=' done';w=100-(p.t-p.cook)/p.win*100;if(p.cook+p.win-p.t<BURNWARN)cls+=' warn'}else{cls+=' burnt';w=100}
+      bar=`<div class="${cls}" style="left:${x+5}px"><i style="width:${w.toFixed(1)}%"></i></div>`;
+    }
+    sh+=`<div class="slot" data-act="slot" data-i="${i}" style="left:${x}px">${art}</div>`;
+    bh+=bar;
+  });
+  setH($('#slots'),'slots',sh);
+  setH($('#bars'),'bars',bh);
+  const syr=$('#syrupS');
+  const melting=R.melt>0;
+  syr.setAttribute('fill',melting?'#f4eedc':R.syrup>0?'#e89a2a':'#5a3a22');
+  syr.setAttribute('ry',R.syrup>0||melting?19:10);
+  $('#potMsg').textContent=melting?'熬糖中…':R.syrup<=0?'冇糖漿！點白糖':'';
+  setH($('#potPlate'),'pp',`糖鍋 · 糖漿 ${R.syrup}/${S.up.syrup}`);
+  const fl=$('#flame');setH(fl,'fl',`<path d="M160 236q10-24 16-4q8-26 14 0q8-22 14 4q8-18 12 0z" fill="${S.up.slow?'#5aa8ff':'#ff8a2a'}" opacity=".9"/>`);
+  // bins locks
+  ['sz','cm','tz','jz','qy'].forEach(f=>{const l=$('#bin_'+f+' .lock');const o=fruitOpen(f);l.hidden=o;if(!o)setH(l,'lk'+f,FR[f].buy?`${FR[f].n}<small>商店解鎖</small>`:`${FR[f].n}<small>第 ${FR[f].day} 天開放</small>`)});
+  const sl=$('#bin_ses .lock');sl.hidden=sesOpen();if(!sesOpen())setH(sl,'lkses','芝麻<small>第 5 天開放</small>');
+}
+
+/* Rack */
+function rackPos(i,N){
+  const W2=262;
+  const sp=W2/N;return [sp*(i+.5)-18,N<=5?0:(i%2?8:-20)];
+}
+function renderRack(){
+  const N=R?R.rack.length:S.up.rack;
+  let h=`<svg style="position:absolute;left:0;top:118px" width="270" height="106" viewBox="0 0 270 106"><path d="M6 30Q135 8 264 30L262 92Q135 104 8 92Z" fill="#d9b25a" stroke="#6a4a1a" stroke-width="3"/>${Array.from({length:30},(_,i)=>`<path d="M${10+i*8.6} ${24+Math.sin(i)*3}l${(i%3-1)*3} 66" stroke="#a8823a" stroke-width="1.6"/>`).join('')}<path d="M8 52Q135 66 262 52" stroke="#8a2a1a" stroke-width="5" fill="none"/><path d="M8 74Q135 88 262 74" stroke="#8a2a1a" stroke-width="5" fill="none"/></svg>`;
+  if(R)R.rack.forEach((it,i)=>{
+    const [x,y]=rackPos(i,N);
+    const sel=R.sel&&R.sel.t==='rack'&&R.sel.i===i;
+    h+=`<div class="rslot ${it?'':'empty'} ${sel?'sel':''}" data-act="rack" data-i="${i}" style="left:${x+4}px;top:${y+4}px;z-index:${y<0?1:2}">${it?skewer(it.f,'done',it.ses):`<svg viewBox="0 0 44 170"><rect x="19" y="118" width="6" height="10" rx="2" fill="#6a4a1a" opacity=".6"/></svg>`}</div>`;
+  });
+  const used=R?R.rack.filter(Boolean).length:0;
+  h+=`<div class="cap">草靶 ${used}/${N}</div>`;
+  setH($('#rack'),'rack',h);
+}
+
+/* Customers */
+function spotX(i,n){const L=286,Rr=1270,sp=(Rr-L)/n;return L+sp*(i+.5)-90}
+function freeSpot(){const n=S.up.seats;for(const i of [...Array(n).keys()].sort(()=>Math.random()-.5))if(!R.custs.some(c=>c.spot===i&&c.state!=='gone'))return i;return -1}
+function makeOrder(L,big){
+  const keys=Object.keys(MENU).filter(menuOpen);
+  let nItems=1;const r=Math.random();
+  if(S.day>=3&&r<.32)nItems=2;if(S.day>=6&&r<.1)nItems=3;
+  if(L.more&&nItems<3&&Math.random()<.6)nItems++;
+  const ord=[];
+  for(let i=0;i<nItems;i++){
+    let tot=0;const ws=keys.map(k=>{let w=MENU[k].w;if(L.fav&&L.fav.includes(k))w*=3;if(k==='smt'&&R.evd.drink)w*=3;tot+=w;return w});
+    let x=Math.random()*tot;let k=keys[0];for(let j=0;j<keys.length;j++){x-=ws[j];if(x<=0){k=keys[j];break}}
+    ord.push({k,done:0});
+  }
+  return ord;
+}
+function spawn(){
+  const spot=freeSpot();if(spot<0)return false;
+  let L,name='',lines=MOBL,reg=null;
+  const regs=REG.filter(g=>S.day>=g.day&&!R.regSeen[g.id]&&!R.custs.some(c=>c.reg===g.id&&c.state!=='gone'));
+  if(regs.length&&Math.random()<.28){reg=pick(regs);L=reg;name=reg.name;lines=reg.lines;R.regSeen[reg.id]=1}
+  else{L={skin:pick(SKINS),hair:pick(HAIRC),hs:pick(HS),top:pick(TOPS),pat:rnd(.9,1.1)};if(Math.random()<.12){L.acc='glasses'}if(Math.random()<.12){L.kid=1;L.pat=.8;L.acc='cap';L.accC=pick(TOPS)}}
+  const ord=makeOrder(L);
+  const patMax=(24+7*ord.length)*(L.pat||1)*(1+decSum('pat'))*(R.evd.pat||1)*Math.max(.72,1-(S.day-1)*.018);
+  const c={id:++R.cid,L,name,reg:reg?reg.id:null,line:pick(lines),ord,pat:patMax,patMax,spot,state:'walk',wt:1.05,sayT:2.6,happyT:0,mood:'ok',el:null};
+  const el=document.createElement('div');el.className='cust walk';el.dataset.act='cust';el.dataset.id=c.id;
+  el.style.left='1320px';
+  el.innerHTML=`<div class="say">${c.line}</div><div class="bub">${name?`<div class="who">${name}</div>`:''}<div class="ord"></div><div class="patb"><i></i></div></div><div class="fig">${figure(L,'ok')}</div>`;
+  $('#custs').appendChild(el);c.el=el;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.left=spotX(spot,S.up.seats)+'px'}));
+  R.custs.push(c);renderOrder(c);
+  return true;
+}
+function renderOrder(c){c.el.querySelector('.ord').innerHTML=c.ord.map(o=>`<div class="oi ${o.done?'done':''}">${orderIcon(o.k)}<b>${MENU[o.k].n}</b></div>`).join('')}
+function setMood(c,m){if(c.mood===m)return;c.mood=m;c.el.querySelector('.fig').innerHTML=figure(c.L,m)}
+function leave(c,happy){
+  if(c.state==='gone')return;
+  c.state='gone';c.el.classList.add('gone','walk');
+  setMood(c,happy?'happy':'angry');
+  const say=c.el.querySelector('.say');say.textContent=happy?pick(['多謝晒！','好好食呀！','下次再嚟！','甜到漏！']):pick(['等到頸都長…','唔等喇！','慢過龜…']);say.classList.add('on');
+  if(R.sel&&R.sel.t==='cust')R.sel=null;
+  setTimeout(()=>{c.el.style.left=(happy?-220:1340)+'px'},500);
+  setTimeout(()=>{c.el.remove();R&&(R.custs=R.custs.filter(x=>x!==c))},1700);
+}
+
+/* ================= FX ================= */
+let toastT=0;
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),1500)}
+function floatAt(x,y,t,bad){const e=document.createElement('div');e.className='float'+(bad?' bad':'');e.style.left=x+'px';e.style.top=y+'px';e.textContent=t;$('#fx').appendChild(e);setTimeout(()=>e.remove(),1150)}
+function banner(t,ms=1400){const e=$('#banner');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),ms)}
+function elPos(el){const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect(),k=s.width/W;return [(r.left+r.width/2-s.left)/k,(r.top-s.top)/k]}
+
+/* ================= Actions ================= */
+function spend(n){if(S.coins<n){toast('銀包唔夠錢！');sfx('bad');return false}S.coins-=n;R.cost+=n;return true}
+function activeBoard(){return R.boards[R.active]}
+const ACT={
+  fruit(el){
+    const k=el.dataset.k;if(!fruitOpen(k)){toast(FR[k].buy?'去商店買咗先':'仲未開放');sfx('bad');return}
+    let b=activeBoard();
+    if(b.st&&b.f.length>=5){const j=R.boards.findIndex(x=>!x.st||x.f.length<5);if(j<0){toast('串籤板滿晒，快啲拎去沾糖');sfx('bad');return}R.active=j;b=R.boards[j]}
+    if(!b.st){if(!spend(COST.stick+FR[k].c))return;b.st=1}else if(!spend(FR[k].c))return;
+    b.f.push(k);sfx('plop');
+  },
+  board(el){const i=+el.dataset.i;if(!R.boards[i]){toast('去商店買第二塊串籤板');return}R.active=i;sfx('tap')},
+  pot(){dip(-1)},
+  slot(el){const i=+el.dataset.i,p=R.pot[i];if(!p){dip(i);return}collect(i)},
+  sugar(){
+    if(R.melt>0){toast('熬緊糖，等等');return}
+    if(R.syrup>=S.up.syrup){toast('糖漿仲係滿嘅');return}
+    if(!spend(COST.sugar))return;R.melt=S.up.fastmelt?2:4;R.syrup=0;sfx('sugar');
+  },
+  sesame(){
+    if(!sesOpen()){toast('第 5 天先有芝麻');sfx('bad');return}
+    const s=R.sel;if(!s||s.t!=='rack'){toast('喺草靶揀一串山楂串先，再撒芝麻');return}
+    const it=R.rack[s.i];if(it.k!=='sz'){toast(it.k==='zm'?'已經撒咗芝麻':'芝麻只配山楂串');sfx('bad');return}
+    if(!spend(COST.ses))return;it.k='zm';it.ses=1;sfx('sugar');
+  },
+  trash(){
+    const s=R.sel;
+    if(s){if(s.t==='rack')R.rack[s.i]=null;else if(s.t==='tap'){const t=R.taps[s.i];t.ready=0;t.on=0;t.f=0}R.sel=null;sfx('trash');return}
+    const b=activeBoard();if(b&&b.st){b.st=0;b.f=[];sfx('trash');return}
+    const bi=R.pot.findIndex(p=>p&&p.t>=p.cook+p.win);if(bi>=0){R.pot[bi]=null;sfx('trash');return}
+    toast('冇嘢要掉');
+  },
+  tap(el){
+    if(!smtOpen()){toast('第 3 天先有酸梅湯');sfx('bad');return}
+    const i=+el.dataset.i,t=R.taps[i];
+    if(t.ready){R.sel=(R.sel&&R.sel.t==='tap'&&R.sel.i===i)?null:{t:'tap',i};sfx('tap');return}
+    if(t.on){toast('倒緊，等等');return}
+    if(!spend(COST.cup))return;t.on=1;t.f=0;sfx('pour');
+  },
+  rack(el){const i=+el.dataset.i;if(!R.rack[i])return;R.sel=(R.sel&&R.sel.t==='rack'&&R.sel.i===i)?null:{t:'rack',i};sfx('tap')},
+  cust(el){
+    const c=R.custs.find(x=>x.id==el.dataset.id);if(!c||c.state!=='wait')return;
+    const s=R.sel;if(!s){toast('先揀好要送嘅嘢，再點客人');return}
+    const k=s.t==='rack'?R.rack[s.i].k:'smt';
+    const o=c.ord.find(o=>!o.done&&o.k===k);
+    if(!o){const say=c.el.querySelector('.say');say.textContent=pick(['我冇叫呢個喎！','唔係呢樣呀～','老闆你攞錯咗']);say.classList.add('on');c.sayT=1.6;sfx('bad');c.pat=Math.max(0,c.pat-2);return}
+    o.done=1;
+    if(s.t==='rack')R.rack[s.i]=null;else{const t=R.taps[s.i];t.ready=0;t.on=0;t.f=0}
+    R.sel=null;
+    const p=MENU[k].p;S.coins+=p;R.rev+=p;
+    const [x,y]=elPos(c.el);floatAt(x,y+60,'+'+money(p));sfx('coin');
+    c.happyT=1.2;c.pat=Math.min(c.patMax,c.pat+4);
+    renderOrder(c);
+    if(c.ord.every(o=>o.done)){
+      const tot=c.ord.reduce((a,o)=>a+MENU[o.k].p,0),f=c.pat/c.patMax;
+      const tip=Math.round(tot*.28*f*(1+decSum('tip'))*(R.evd.tip||1));
+      if(tip>0){S.coins+=tip;R.rev+=tip;R.tips+=tip;setTimeout(()=>floatAt(x,y+30,'貼士 +'+money(tip)),280)}
+      R.served++;S.served++;leave(c,true);
+    }
+  },
+  pause(){if(MODE!=='play')return;PAUSE=true;modal(`<h2>休息一陣</h2><p>今日淨利 ${money(profit())}。返主頁嘅話，今日會由頭再嚟過。</p><div class="btns"><button class="btn pri" data-act="resume">繼續開檔</button><button class="btn" data-act="howto">玩法說明</button><button class="btn" data-act="quit">返主頁</button></div>`)},
+  resume(){closeModal();PAUSE=false},
+  quit(){S=R.snap;save();R=null;clearCusts();closeModal();showHome()},
+  music(){S.music=S.music?0:1;save();if(ac()){musicOn();mus.gain.value=S.music?.16:0}syncMusicBtn();const hb=$('#hMusicBtn');if(hb)hb.textContent='音樂：'+(S.music?'開':'關')},
+  rotok(){rotDismiss=true;fit()},
+};
+function dip(i){
+  if(R.melt>0){toast('糖漿仲熬緊');return}
+  if(R.syrup<=0){toast('冇糖漿喇！點「白糖」熬一鍋');sfx('bad');return}
+  let bi=R.boards[R.active]&&R.boards[R.active].f.length?R.active:R.boards.findIndex(b=>b.f.length);
+  if(bi<0){toast('串籤板上面未有糖葫蘆');return}
+  if(i<0||R.pot[i])i=R.pot.findIndex(p=>!p);
+  if(i<0){toast('糖鍋冇位喇');sfx('bad');return}
+  const b=R.boards[bi];
+  const cook=b.f.reduce((a,k)=>a+FR[k].cook,0)/b.f.length;
+  R.pot[i]={f:b.f.slice(),t:0,cook,win:5+(S.up.slow?3:0),burnt:0};
+  b.st=0;b.f=[];R.syrup--;sfx('dip');
+  if(R.boards.length>1&&!R.boards[R.active].st){const j=R.boards.findIndex(x=>x.st);if(j>=0)R.active=j}
+}
+function collect(i){
+  const p=R.pot[i];
+  if(p.t<p.cook){toast('糖衣未掛好');return}
+  if(p.t>=p.cook+p.win){R.pot[i]=null;sfx('trash');toast('焦咗，掉咗佢');return}
+  const j=R.rack.findIndex(x=>!x);
+  if(j<0){toast('草靶插滿咗！先送走啲貨');sfx('bad');return}
+  const k=RBK[mkey(p.f)];
+  R.rack[j]={k:k&&menuOpen(k)?k:'odd',f:p.f,ses:0};
+  if(!k||!menuOpen(k))toast('呢串唔係餐牌上嘅款，冇人要喎');
+  R.pot[i]=null;sfx('ding');
+}
+MENU.odd={n:'自創串',p:0,f:[]};
+const BURNWARN=2;
+
+/* ================= Loop ================= */
+function clockH(){return 18+Math.min(1,R.t/DAYLEN)*6}
+function period(h){return h<19?'開檔':h<20.5?'晚市高峰':h<21.5?'散步時段':h<23?'宵夜高峰':'收檔前'}
+function rush(h){return h<19?.85:h<20.5?1.5:h<21.5?.95:h<23?1.4:.75}
+function update(dt){
+  R.t+=dt;const h=clockH();
+  if(!R.closing&&R.t>=DAYLEN*LASTORDER){R.closing=true;toast('最後落單！之後唔會再有新客')}
+  if(!R.closing){
+    R.spawnT-=dt;
+    if(R.spawnT<=0){spawn();const base=Math.max(3.0,8.6-S.day*.45);R.spawnT=base/rush(h)/((R.evd.crowd||1)*(1+decSum('crowd')))*rnd(.7,1.3)}
+    if(R.evd.tour&&!R.tourDone&&h>=21){R.tourDone=true;banner('旅行團到！');let n=0;const go=()=>{if(spawn()&&++n<5)setTimeout(go,350)};go()}
+  }
+  for(const c of R.custs){
+    if(c.state==='walk'){c.wt-=dt;if(c.wt<=0){c.state='wait';c.el.classList.remove('walk');c.el.querySelector('.say').classList.add('on')}}
+    else if(c.state==='wait'){
+      c.pat-=dt;if(c.sayT>0){c.sayT-=dt;if(c.sayT<=0)c.el.querySelector('.say').classList.remove('on')}
+      if(c.happyT>0)c.happyT-=dt;
+      const f=c.pat/c.patMax;
+      setMood(c,c.happyT>0?'happy':f>.55?'ok':f>.25?'worry':'angry');
+      const bar=c.el.querySelector('.patb i');bar.style.width=(clamp(f,0,1)*100).toFixed(1)+'%';bar.style.background=f>.55?'var(--jade)':f>.25?'var(--warn)':'var(--bad)';
+      if(c.pat<=0){R.angry++;leave(c,false);sfx('bad')}
+    }
+  }
+  for(const p of R.pot)if(p){p.t+=dt;if(!p.burnt&&p.t>=p.cook+p.win){p.burnt=1;sfx('burn')}if(!p.dinged&&p.t>=p.cook){p.dinged=1;sfx('ding')}}
+  if(R.melt>0){R.melt-=dt;if(R.melt<=0){R.melt=0;R.syrup=S.up.syrup;sfx('ding')}}
+  const ft=S.up.tapfast?2:4;
+  for(const t of R.taps)if(t.on&&!t.ready){t.f+=dt/ft;if(t.f>=1){t.f=1;t.ready=1;sfx('ding')}}
+  if(R.t>=DAYLEN+25)R.custs.forEach(c=>c.state!=='gone'&&leave(c,false));
+  if(R.t>=DAYLEN&&R.custs.length===0&&!R.ended)endDay();
+}
+function renderHUD(){
+  const g=goals(S.day),p=profit();
+  $('#hDay').textContent=`第 ${S.day} 天`;
+  $('#hProfit').textContent=`淨利 ${p<0?'-':''}${money(Math.abs(p))}`;
+  $('#hFill').style.width=clamp(p/g[2]*100,0,100)+'%';
+  [1,2,3].forEach(i=>{const e=$('#s'+i);e.style.left=(g[i-1]/g[2]*100-(i===3?3:0))+'%';e.classList.toggle('on',p>=g[i-1])});
+  const got=g.filter(x=>p>=x).length;if(R&&got>R.starsShown){R.starsShown=got;sfx('star',got);toast(`攞到第 ${got} 粒星！`)}
+  const h=R?clockH():18,hh=Math.floor(h),mm=Math.floor((h-hh)*60/5)*5;
+  setH($('#hClock'),'clk',`${String(hh%24).padStart(2,'0')}:${String(mm).padStart(2,'0')}<small>${R?period(h):'開檔'}</small>`);
+  setH($('#hCoins'),'coins',`銀包 ${money(S.coins)}`);
+}
+function hint(){
+  const e=$('#hint');
+  if(!R||S.day>2||MODE!=='play'){e.hidden=true;return}
+  let t='';
+  const b=activeBoard(),anyDone=R.pot.some(p=>p&&p.t>=p.cook&&p.t<p.cook+p.win),rackHas=R.rack.some(Boolean),waiting=R.custs.some(c=>c.state==='wait');
+  if(R.sel)t='再點想要呢樣嘢嘅客人，送畀佢';
+  else if(anyDone)t='糖衣金黃發亮！點糖鍋入面嗰串，插上草靶';
+  else if(rackHas&&waiting)t='點草靶上面嘅糖葫蘆揀起佢';
+  else if(R.syrup<=0&&R.melt<=0)t='冇糖漿喇，點「白糖」熬一鍋';
+  else if(b.st&&b.f.length>=5||b.st&&b.f.length===3&&b.f.every(k=>k==='cm'))t='串好喇！點「糖鍋」沾糖漿';
+  else if(b.st&&b.f.length)t=`繼續點水果，串滿佢（${b.f.length}/${b.f[0]==='cm'?3:5}）`;
+  else if(R.pot.some(Boolean))t='等糖衣掛好…順手串定下一串';
+  else t=S.day===1?'點「山楂」開始串，要串 5 粒':'睇清楚客人要咩，點水果開始串';
+  e.textContent=t;e.hidden=false;
+}
+function highlightCust(){if(!R)return;const s=R.sel;const k=s?(s.t==='rack'?R.rack[s.i]&&R.rack[s.i].k:'smt'):null;R.custs.forEach(c=>c.el.classList.toggle('hl',!!k&&c.state==='wait'&&c.ord.some(o=>!o.done&&o.k===k)))}
+let last=0,SPEED=1;
+function frame(ts){
+  const dt=Math.min(.1,(ts-last)/1000||0);last=ts;
+  if(MODE==='play'&&R&&!PAUSE&&!R.ended){for(let i=0;i<SPEED;i++)if(!R.ended)update(dt)}
+  if(R&&MODE==='play'){renderKitchen();renderRack();highlightCust()}
+  renderHUD();hint();
+  requestAnimationFrame(frame);
+}
+
+/* ================= Flow ================= */
+function modal(html){const m=$('#modal');m.innerHTML=`<div class="card">${html}</div>`;m.hidden=false}
+function closeModal(){$('#modal').hidden=true}
+function clearCusts(){$('#custs').innerHTML=''}
+function showHome(){
+  MODE='home';$('#hint').hidden=true;
+  const best=Object.keys(S.stars).length;
+  const fresh=S.day===1&&!S.served;
+  $('#home').hidden=false;
+  $('#home').innerHTML=`<svg class="hbg" viewBox="0 0 1280 720" width="1280" height="720"><defs><radialGradient id="hg" cx=".72" cy=".45" r=".6"><stop offset="0" stop-color="#5a2438"/><stop offset="1" stop-color="#140a2a"/></radialGradient></defs><rect width="1280" height="720" fill="url(#hg)"/>${Array.from({length:40},(_,i)=>`<circle cx="${(i*137)%1280}" cy="${(i*71)%300}" r="${1+(i%3)}" fill="#ffe9a0" opacity="${.2+(i%5)*.1}"/>`).join('')}<g transform="translate(820 90) rotate(-14)">${[0,1,2].map(i=>`<g transform="translate(${i*110} ${i*30}) scale(3.1)">${skewer(i===1?['cm','cm','cm']:i===2?['cm','tz','jz','sz']:['sz','sz','sz','sz','sz'],'done',i===0).replace(/<\/?svg[^>]*>/g,'')}</g>`).join('')}</g><path d="M0 640Q640 600 1280 640V720H0z" fill="#2a1622"/></svg>
+  <div class="logo"><div class="t1">串串甜！</div><div class="t2">冰糖葫蘆夜市小檔</div><div class="t3">喺夜市開檔賣冰糖葫蘆：串水果、沾糖漿、插草靶、送畀街坊。糖衣要啱啱金黃先好拎起，遲一步就焦。每晚賺夠錢攞星，收檔去升級個檔口。</div></div>
+  <div class="hbtns"><button class="btn pri" data-act="startDay">${fresh?'開檔做生意':`繼續：第 ${S.day} 天`}</button><button class="btn" data-act="shop" ${fresh?'hidden':''}>攤檔升級</button><button class="btn" data-act="howto">玩法說明</button><button class="btn" data-act="music" id="hMusicBtn">音樂：${S.music?'開':'關'}</button><button class="btn" data-act="reset" ${fresh?'hidden':''}>由頭開始</button></div>
+  <div class="hstat">${fresh?'':`銀包 ${money(S.coins)} · 已招呼 ${S.served} 位客人 · 過咗 ${best} 晚`}</div>`;
+}
+const HOME_ACT={
+  startDay(){ac();musicOn();if(!S.help){S.help=1;save();howto(true);return}dayIntro()},
+  howto(){howto(false)},
+  shop(){shop('up',false)},
+  reset(){modal(`<h2>由頭開始？</h2><p>所有進度、銀包同升級都會清走，返去第 1 天。</p><div class="btns"><button class="btn pri" data-act="resetYes">確定清走</button><button class="btn" data-act="closeM">唔好喇</button></div>`)},
+  resetYes(){const m=S.music;S=clone(DEF);S.music=m;save();closeModal();showHome()},
+  closeM(){closeModal()},
+  goDay(){closeModal();beginDay()},
+  next(){closeModal();clearCusts();R=null;dayIntro()},
+  retry(){closeModal();clearCusts();R=null;dayIntro()},
+  toShop(){shop('up',true)},
+  home(){closeModal();clearCusts();R=null;showHome()},
+  howDone(){closeModal();if(MODE==='home'&&$('#modal').dataset.fromStart==='1'){$('#modal').dataset.fromStart='';dayIntro()}else if(MODE==='play'&&PAUSE){ACT.pause()}},
+  stab(el){shop(el.dataset.tab,el.dataset.after==='1')},
+  buy(el){const id=el.dataset.id,tab=el.dataset.tab,after=el.dataset.after==='1';
+    const all=[...UPS,...NEWITEMS.map(x=>({...x,ok:()=>!S.own[x.id],go:()=>S.own[x.id]=1,done:()=>!!S.own[x.id]})),...DECO.map(x=>({...x,ok:()=>!S.dec[x.id],go:()=>S.dec[x.id]=1,done:()=>!!S.dec[x.id]}))];
+    const u=all.find(x=>x.id===id);if(!u||u.done()||!u.ok()||S.coins<u.cost)return;S.coins-=u.cost;u.go();save();sfx('coin');drawDeco();renderRack();shop(tab,after)},
+  borrow(){S.coins+=150;save();closeModal();dayIntro()},
+};
+function howto(fromStart){
+  $('#modal').dataset.fromStart=fromStart?'1':'';
+  modal(`<h2>點樣賣糖葫蘆</h2><div class="how">
+  <div class="n">1</div><div>睇客人頭頂個<b>氣泡</b>，佢要咩就整咩。下面條橫額係<b>耐性</b>，變紅就快嬲走。</div>
+  <div class="n">2</div><div>點右下角嘅<b>水果</b>，會自動放竹籤喺<b>串籤板</b>，一粒粒串上去。山楂串要 5 粒、草莓串要 3 粒。</div>
+  <div class="n">3</div><div>串好就點<b>糖鍋</b>沾糖漿。糖衣變到<b>金黃發亮</b>就點佢，會插上左上角嘅<b>草靶</b>。等太耐條橫額閃紅，就會<b>焦</b>。</div>
+  <div class="n">4</div><div>點草靶上面嗰串揀起佢，再點<b>客人</b>送上。想要嗰位客人會發光。</div>
+  <div class="n">5</div><div>每鍋糖漿沾得幾串，用完要點<b>白糖</b>再熬。串錯咗或者焦咗，就揀起佢再點<b>垃圾桶</b>。</div>
+  <div class="n">6</div><div>每晚 18:00 開檔、00:00 收檔。<b>淨利</b>（收入減成本）攞夠一粒星先可以去下一晚，賺到嘅錢可以升級檔口。</div></div>
+  <div class="btns"><button class="btn pri" data-act="howDone">${fromStart?'明白，開檔！':'知道喇'}</button></div>`);
+}
+function dayIntro(){
+  MODE='home';
+  if(S.coins<15){modal(`<h2>銀包見底</h2><p>連買竹籤嘅錢都唔夠……問阿媽借住 $150 頂住先。</p><div class="btns"><button class="btn pri" data-act="borrow">借 $150</button></div>`);return}
+  newRun();$('#home').hidden=true;clearCusts();sig={};drawDeco();
+  const g=goals(S.day),nw=NEWS[S.day],ev=R.ev?EVS[R.ev]:null;
+  modal(`<h2>第 ${S.day} 晚</h2><p>夜市 18:00 開檔，00:00 收檔，23:35 最後落單。</p>
+  ${nw?`<div class="news">${orderIcon(nw[0])}<div><b>新款：${nw[1]}（${money(MENU[nw[0]].p)}）</b><p>${nw[2]}</p></div></div>`:''}
+  ${ev?`<div class="ev"><div class="ic">${ev.ic}</div><div><b>${ev.n}</b><p style="margin:2px 0 0">${ev.d}</p></div></div>`:''}
+  <h3>今晚目標（淨利）</h3><div class="goals">${g.map((x,i)=>`<div class="goal">${'★'.repeat(i+1)}<span>${money(x)}</span></div>`).join('')}</div>
+  <div class="btns"><button class="btn pri" data-act="goDay">開檔！</button><button class="btn" data-act="toShop">攤檔升級</button><button class="btn" data-act="home">返主頁</button></div>`);
+  renderKitchen();renderRack();
+}
+function beginDay(){
+  if(!R)newRun();
+  MODE='play';PAUSE=false;$('#home').hidden=true;
+  // rebuild run containers in case upgrades changed
+  R.boards=Array.from({length:S.up.boards},()=>({st:0,f:[]}));R.pot=Array.from({length:S.up.pot},()=>null);R.rack=Array.from({length:S.up.rack},()=>null);R.taps=Array.from({length:S.up.taps},()=>({f:0,on:0,ready:0}));R.syrup=S.up.syrup;
+  R.snap=clone(S);sig={};
+  banner('開檔！');sfx('open');ac();musicOn();
+}
+function endDay(){
+  R.ended=true;MODE='end';sfx('close');banner('收檔！');
+  const p=profit(),g=goals(S.day),st=g.filter(x=>p>=x).length;
+  const d=S.day;
+  if(st>0){S.stars[d]=Math.max(S.stars[d]||0,st);S.day++}
+  save();
+  setTimeout(()=>{
+    modal(`<h2>第 ${d} 晚 收檔</h2><div class="bigstars">${[1,2,3].map(i=>`<span class="${i<=st?'on':''}">★</span>`).join('')}</div>
+    <div class="sum"><span>營業額（連貼士）</span><b>${money(R.rev)}</b><span>其中貼士</span><b>${money(R.tips)}</b><span>材料成本</span><b>-${money(R.cost)}</b><span class="tot">淨利</span><b class="tot">${p<0?'-':''}${money(Math.abs(p))}</b><span>招呼咗</span><b>${R.served} 位</b><span>嬲咗走</span><b>${R.angry} 位</b></div>
+    <p>${st>0?(st===3?'三粒星！成條街都講緊你檔糖葫蘆。':'做得唔錯，聽晚再努力！'):`差少少先夠一粒星（${money(g[0])}）。今晚會由頭再嚟過。`}</p>
+    <div class="btns">${st>0?`<button class="btn pri" data-act="next">去第 ${S.day} 晚</button><button class="btn" data-act="toShop">攤檔升級</button>`:`<button class="btn pri" data-act="retry">再挑戰</button>`}<button class="btn" data-act="home">返主頁</button></div>`);
+  },1500);
+}
+function shop(tab='up',after){
+  const all={up:UPS.filter(u=>!u.vis||u.vis()),new:NEWITEMS.map(x=>({...x,ok:()=>!S.own[x.id]&&S.day>=x.day,done:()=>!!S.own[x.id],need:`第 ${x.day} 天開始有得賣`})),dec:DECO.map(x=>({...x,ok:()=>!S.dec[x.id],done:()=>!!S.dec[x.id]}))};
+  const list=all[tab];
+  modal(`<div class="wallet">銀包 ${money(S.coins)}</div><h2>攤檔升級</h2>
+  <div class="tabs">${[['up','設備'],['new','新貨'],['dec','裝飾']].map(([k,n])=>`<button class="tab ${k===tab?'on':''}" data-act="stab" data-tab="${k}" data-after="${after?1:0}">${n}</button>`).join('')}</div>
+  <div class="shop">${list.map(u=>{const done=u.done(),ok=u.ok();return `<div class="up ${done?'done':''}"><b>${u.n}</b><p>${u.d}</p><div class="row"><span class="price">${money(u.cost)}</span>${done?'<span>已擁有</span>':ok?`<button class="sbtn" data-act="buy" data-id="${u.id}" data-tab="${tab}" data-after="${after?1:0}" ${S.coins<u.cost?'disabled':''}>購買</button>`:`<span style="font-size:12px">${u.need||''}</span>`}</div></div>`}).join('')}</div>
+  <div class="btns">${MODE==='home'&&R&&!R.ended?`<button class="btn pri" data-act="goDay">開檔！</button>`:''}${MODE==='end'?`<button class="btn pri" data-act="next">去第 ${S.day} 晚</button>`:''}<button class="btn" data-act="${MODE==='home'&&R?'reIntro':'home'}">${MODE==='home'&&R?'返回':'返主頁'}</button></div>`);
+}
+HOME_ACT.reIntro=()=>{R=null;dayIntro()};
+
+/* ================= Input ================= */
+let lastTapT=0;
+stage.addEventListener('pointerdown',e=>{
+  const a=e.target.closest('[data-act]');if(!a)return;
+  ac();
+  const n=a.dataset.act;
+  if(HOME_ACT[n]){e.preventDefault();HOME_ACT[n](a);return}
+  if(n==='music'||n==='pause'||n==='resume'||n==='quit'){ACT[n](a);return}
+  if(MODE!=='play'||PAUSE||!R||R.ended)return;
+  if(ACT[n])ACT[n](a);
+});
+document.addEventListener('pointerdown',e=>{if(e.target.closest('#rotok'))ACT.rotok()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&MODE==='play'){PAUSE?ACT.resume():ACT.pause()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&MODE==='play'&&!PAUSE)ACT.pause()});
+
+let rotDismiss=false;
+function fit(){const w=innerWidth,h=innerHeight,k=Math.min(w/W,h/H);stage.style.transform=`translate(${(w-W*k)/2}px,${(h-H*k)/2}px) scale(${k})`;$('#rotate').hidden=rotDismiss||!(h>w&&w<760)}
+addEventListener('resize',fit);
+
+/* ================= Boot ================= */
+drawBG();buildKitchen();drawDeco();syncMusicBtn();fit();
+R=null;renderRack();showHome();
+requestAnimationFrame(frame);
+window.__TH={get R(){return R},get S(){return S},ACT,HOME_ACT,set speed(v){SPEED=v}};
+})();
+</script>
